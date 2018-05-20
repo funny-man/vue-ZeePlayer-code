@@ -1,0 +1,23 @@
+// 颜色定义规范
+$color-bg:#181d28;
+$color-theme-1 :#f54074;
+$color-theme-2 :#7f3498;
+$color-theme-text-l :#7994c8;//系统浅色（例如tab的选中状态）
+$color-theme-text-s :#465778;//系统深色（包括页面标题tab）
+
+$color-icon-1:#e2e3e4;//上一曲、下一曲
+$color-icon-2:#b7bbc4;
+$color-icon-3:#6d85b4;
+
+$color-timeline:#101622;
+$color-timeline-loading:#1c2230;
+
+$color-text-l :#9d9ebb;//内容亮色（点亮歌词、歌名、专辑名、主标题）
+$color-text-s :#47546c;//内容深色（歌词、歌手名、专辑简介、副标题）
+//字体定义规范
+$font-size-s:10px;
+$font-size-s-x :12px;
+$font-size-m :15px;
+$font-size-m-x :16px;
+$font-size-l :19px;
+$font-size-l-x :22px;

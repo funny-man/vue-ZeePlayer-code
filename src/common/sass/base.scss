@@ -1,0 +1,10 @@
+@import "./variable.scss";
+
+html, body {
+  line-height: 1;
+  font-family: 'PingFang SC', 'STHeitiSC-Light', 'Helvetica-Light', arial, sans-serif, 'Droid Sans Fallback';
+  user-select: none;//文本无法被选择（例如复制）
+  -webkit-tap-highlight-color: transparent;
+  background-color: $color-bg;
+  color: #fff;
+}

@@ -1,22 +1,22 @@
 <template>
   <div id="app">
-    hello vue
+    <m-header></m-header>
   </div>
 </template>
 
 <script>
-// export default {
-//   name: 'App'
-// }
+import MHeader from 'components/m-header/m-header'
+export default {
+  components: {
+    MHeader
+  }
+}
 </script>
 
-<style>
-  #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #1882ec;
-    margin-top: 60px;
-  }
+<style scoped lang="scss">
+#box{
+  width: 100px;
+  height: 100px;
+  color: red;
+}
 </style>
