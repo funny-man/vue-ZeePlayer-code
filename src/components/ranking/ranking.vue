@@ -1,0 +1,10 @@
+<template>
+  <div>这里是排行</div>
+</template>
+
+<script >
+export default {}
+</script>
+
+<style scoped lang="scss">
+</style>
