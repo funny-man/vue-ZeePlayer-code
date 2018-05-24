@@ -1,3 +1,4 @@
+//  做一些jsonp请求的通用数据
 export const commonParams = {
   g_tk: 5381,
   inCharset: 'utf-8',

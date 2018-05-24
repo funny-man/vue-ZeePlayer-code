@@ -104,18 +104,6 @@ export default {
           this._play()
         }
       })
-      // this.slider.on('scrollEnd', () => {
-      //   let pageIndex = this.slider.getCurrentPage().pageX
-      //   if (this.loop) {
-      //     pageIndex -= 1
-      //   }
-      //   this.currentPageIndex = pageIndex
-
-      //   if (this.autoPlay) {
-      //     this._play()
-      //   }
-      // })
-
       // this.slider.on('beforeScrollStart', () => {
       //   if (this.autoPlay) {
       //     clearTimeout(this.timer)

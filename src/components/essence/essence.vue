@@ -63,7 +63,7 @@ export default {
         font-size: 10xp;
         color: $color-theme-text-s;
         font-weight: 700;
-        letter-spacing:3px;
+        letter-spacing: 3px;
       }
     }
   }
