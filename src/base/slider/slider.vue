@@ -67,11 +67,8 @@ export default {
   methods: {
     _setSliderWidth(isResize) {
       this.children = this.$refs.group.children
-      console.log(this.$refs.slider)
-      console.log(this.children)
       let width = 0
       let sliderWidth = this.$refs.slider.clientWidth
-      console.log(sliderWidth)
       for (let i = 0; i < this.children.length; i++) {
         let child = this.children[i]
         addClass(child, 'slider-item')
@@ -114,7 +111,6 @@ export default {
       for (let i = 0; i < this.children.length; i++) {
         this.dots.push('')
       }
-      console.log(this.dots)
     },
     _play() {
       let index = this.pageIndex + 1

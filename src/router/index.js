@@ -10,6 +10,7 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
+      //  这个路由设置首次进入页面默认进入/essence路由下的页面
       path: '/',
       redirect: '/essence'
     },
