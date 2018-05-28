@@ -1,50 +1,60 @@
 <template>
   <div id="essence">
-    <div class="essence-ct">
-      <div v-if="sliders.length" class="essence-wrapper">
-        <slider>
-          <div v-for="item in sliders" :key="item.id">
-            <a :href="item.linkUrl">
-              <img :src="item.picUrl" alt="">
-            </a>
-          </div>
-        </slider>
-      </div>
-      <div class="essence-list">
-        <h2>HIT LIST</h2>
-        <ul>
-          <li class="clearfix" v-for="(item,index) in hotList" :key="index">
-            <div class="list-pic">
-              <img :src="item.imgurl" alt="">
+    <scroll class="essence-ct" :data="hotList" ref="scroll">
+      <div>
+        <div v-if="sliders.length" class="essence-slider">
+          <slider>
+            <div v-for="item in sliders" :key="item.id">
+              <a :href="item.linkUrl">
+                <img @load="loadImage" :src="item.picUrl" alt="">
+              </a>
             </div>
-            <div class="text">
-              <div class="text-ct">
-                <h3 class="name" v-html="item.dissname">{{ item.dissname }}</h3>
-                <p class="clicks"><span>播放量：</span><span v-html="item.listennum"></span></p>
+          </slider>
+        </div>
+        <div class="essence-list">
+          <h2>HIT LIST</h2>
+          <ul>
+            <li class="clearfix" v-for="(item,index) in hotList" :key="index">
+              <div class="list-pic">
+                <img v-lazy="item.imgurl" alt="">
               </div>
-            </div>
-            <div class="icon">
-              <i class="vue-music-icon icon-arrow"></i>
-            </div>
-          </li>
-        </ul>
+              <div class="text">
+                <div class="text-ct">
+                  <h3 class="name" v-html="item.dissname">{{ item.dissname }}</h3>
+                  <p class="clicks"><span>播放量：</span><span v-html="item.listennum"></span></p>
+                </div>
+              </div>
+              <div class="icon">
+                <i class="vue-music-icon icon-arrow"></i>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
+      <div class="loading-ct"  v-show="!hotList.length">
+        <loading></loading>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script >
+import Scroll from 'base/scroll/scroll'
+import Slider from 'base/slider/slider'
+import Loading from 'base/loading/loading'
+
 import { getEssence, getHotList } from 'api/essence'
 import { ERR_OK } from 'api/jsonp-data-config'
-import Slider from 'base/slider/slider'
 
 export default {
   data: function () {
     return {
-      sliders: '',
-      hotList: null
+      sliders: [],
+      hotList: []
     }
   },
+
+  //  生命周期钩子：在实例创建完成后被立即调用。在这一步，实例已完成以下的配置：数据观测 (data observer)，属性和方法的运算，watch/event 事件回调。然而，挂载阶段还没开始，$el 属性目前不可见。
   created() {
     this._getEssence()
     this._getHotList()
@@ -65,10 +75,23 @@ export default {
       }, (req) => {
         console.log(req)
       })
+    },
+    loadImage() {
+      //  节流!只要有一个图片load成功我们就设置checkLoaded为true后面就不会执行这个函数了
+      if (!this.checkLoaded) {
+        // 由于图片load完后是很大的所以立刻refresh()还是会计算错误是后面多出空间
+        // 延迟使slider控件中的_setSliderWidth()先设置了轮播图的宽度然后在执行refresh()
+        setTimeout(() => {
+          this.$refs.scroll.refresh()
+        }, 5000)
+        this.checkLoaded = true
+      }
     }
   },
   components: {
-    Slider
+    Slider,
+    Scroll,
+    Loading
   }
 }
 </script>
@@ -76,9 +99,16 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable.scss";
 #essence {
+  width: 100%;
+  position: fixed;
+  top: 113px;
+  bottom: 0;
   overflow: hidden;
   .essence-ct {
-    .essence-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    .essence-slider {
       overflow: hidden;
     }
     .essence-list {
@@ -136,6 +166,12 @@ export default {
           }
         }
       }
+    }
+    .loading-ct {
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      transform: translate(0, -50%);
     }
   }
 }
