@@ -129,7 +129,8 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable.scss";
 .slider {
-  overflow: hidden;
+  // overflow: hidden;
+  min-height: 1px;
   .slider-group {
     position: relative;
     overflow: hidden;
@@ -137,10 +138,12 @@ export default {
     .slider-item {
       float: left;
       display: block;
+      overflow: hidden;
       > a {
         display: block;
         box-sizing: border-box;
         width: 100%;
+        height: 100%;
         padding: 8px;
         overflow: hidden;
         text-decoration: none;

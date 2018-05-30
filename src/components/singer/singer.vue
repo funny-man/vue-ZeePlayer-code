@@ -24,7 +24,6 @@ export default {
       getSinger().then(res => {
         if (res.code === ERR_OK) {
           this.singerData = this._normalizeSinger(res.data.list)
-          console.log(typeof this.singerData)
         }
       })
     },
@@ -91,7 +90,13 @@ export default {
   width: 100%;
   top: 113px;
   bottom: 0;
-  overflow: hidden;
+  // overflow: hidden;
   background-color: $color-timeline;
+  .loading-ct {
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
 }
 </style>

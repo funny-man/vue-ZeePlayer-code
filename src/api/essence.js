@@ -5,7 +5,7 @@ import { commonParams, options } from './jsonp-data-config'
 import axios from 'axios'
 
 //  首页轮播图的数据获取
-export function getEssence() {
+export function getSliders() {
   const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
