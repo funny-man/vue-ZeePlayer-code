@@ -21,6 +21,9 @@
         <li v-for="(item ,index) in shortcutList" :key="index" :data-index="index" :class="{select:index===curIndex}">{{ item }}</li>
       </ul>
     </div>
+    <div class="fixed-title-ct" v-show="scrollY<=0" ref="fixed">
+      <h4 class="fixed-title">{{  fixedTitle }}</h4>
+    </div>
     <div class="loading-ct"  v-show="!data.length">
       <loading></loading>
     </div>
@@ -31,6 +34,10 @@
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import { getData } from 'common/js/dom'
+//  设置常量
+const ANCHOR_HEIGHT = 18
+const TITLE_HEIGHT = 36
+
 export default {
   props: {
     data: {
@@ -41,7 +48,9 @@ export default {
   data() {
     return {
       scrollY: -1,
-      curIndex: 0
+      curIndex: 0,
+      diff: 0,
+      fixedTop: 0
     }
   },
   created() {
@@ -50,13 +59,16 @@ export default {
     this.probeType = 3
 
     this.touch = {}
-    this.listHeight = []
+    this.listGroupHeight = []
   },
   computed: {
     shortcutList() {
       return this.data.map((group) => {
         return group.title.substr(0, 1)
       })
+    },
+    fixedTitle() {
+      return this.data[this.curIndex] ? this.data[this.curIndex].title : ''
     }
   },
   methods: {
@@ -71,7 +83,7 @@ export default {
       // console.log(e.pageY)e.pageY的写法只有在safari中有用
       let firstTouch = e.touches[0]
       this.touch.y2 = firstTouch.pageY
-      let delta = (this.touch.y2 - this.touch.y1) / 18 | 0
+      let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
       let anchorIndex = this.touch.anchorIndex + delta
       this._scrollTo(anchorIndex, 500)
     },
@@ -79,17 +91,28 @@ export default {
       this.scrollY = pos.y
     },
     _scrollTo(index, x) {
+      if (index === null) {
+        return
+      }
+      if (index < 0) {
+        index = 0
+      } else if (index > this.listGroupHeight.length - 2) {
+        index = this.listGroupHeight.length - 2
+      }
       this.$refs.listview.scrollToElement(this.$refs.listgroup[index], x)
     },
     _calculateHeight() {
-      this.listHeight = []
+      // 设置歌手每个listgroup的高度
+      this.listGroupHeight = []
       const list = this.$refs.listgroup
       let height = 0
-      this.listHeight.push(height)
+      this.listGroupHeight.push(height)
       for (let i = 0; i < list.length; i++) {
+        // 遍历listgroup
         let item = list[i]
+        // 获取每个group底部到最定点的高度
         height += item.clientHeight
-        this.listHeight.push(height)
+        this.listGroupHeight.push(height)
       }
     }
   },
@@ -97,18 +120,38 @@ export default {
   watch: {
     //  检测props中data变化说明获取了数据等dom渲染获取每个listgroup的高度
     data() {
-      console.log('获取的歌手数据到了')
       setTimeout(() => {
         this._calculateHeight()
       }, 20)
     },
-    scrollY() {
-      console.log('scrollY数据变化了')
-      // const listHeight = this.listHeight
-      // for (let i = 0; i < listHeight.length; i++) {
-      //   let height1 = listHeight[i]
-      //   let height2 = listHeight[i + 1]
-      // }
+    scrollY(newY) {
+      const listGroupHeight = this.listGroupHeight
+      //  newY大于0相当于在顶部还是往下拉
+      if (newY > 0) {
+        this.curIndex = 0
+        return
+      }
+      // 正常滚动
+      for (let i = 0; i < listGroupHeight.length - 1; i++) {
+        let height1 = listGroupHeight[i]
+        let height2 = listGroupHeight[i + 1]
+        if ((height1 = -newY || height1 < -newY) && -newY < height2) {
+          this.curIndex = i
+          this.diff = height2 + newY
+          return
+        }
+      }
+    },
+    diff(newVal) {
+      let fixedTop = (this.diff > 0 && this.diff < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+      if (this.fixedTop === fixedTop) {
+        return
+      }
+      this.fixedTop = fixedTop
+      // 这里我们可以利用v:bind绑定style设置top值或者dom操作设置top值也是能实现的
+      // 这里使用transform偏移是由于transform的性能好点
+      // 使用translate3d可以开启gpu加速
+      this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
     }
   },
   components: {
@@ -125,7 +168,7 @@ export default {
   height: 100%;
   overflow: hidden;
   position: relative;
-  h4 {
+  .list-group-title {
     background-color: $color-timeline-loading;
     font-size: $font-size-s-x;
     color: $color-theme-1;
@@ -154,6 +197,7 @@ export default {
     top: 50%;
     right: 4px;
     transform: translate(0, -50%);
+    z-index: 2;
     padding: 10px 0;
     text-align: center;
     border-radius: 20px;
@@ -162,12 +206,27 @@ export default {
     color: $color-text-l;
     ul {
       li {
-        padding: 3px 4px 3px 4px;
+        padding: 3px 5px 3px 5px;
         opacity: 0.6;
       }
       .select {
         color: $color-theme-1;
       }
+    }
+  }
+  .fixed-title-ct {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    .fixed-title {
+      background-color: $color-timeline-loading;
+      font-size: $font-size-s-x;
+      color: $color-theme-1;
+      width: 100%;
+      line-height: 3;
+      padding-left: 10px;
     }
   }
 }

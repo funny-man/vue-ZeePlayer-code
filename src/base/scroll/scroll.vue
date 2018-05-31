@@ -44,7 +44,6 @@ export default {
         let me = this
         this.scroll.on('scroll', (pos) => {
           //  在监听 this.scroll的scroll在拍派发个自定义事件scroll同时传入pos参数让别的地方监听
-          console.log(1)
           me.$emit('scroll', pos)
         })
       }
