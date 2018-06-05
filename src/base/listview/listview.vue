@@ -9,7 +9,7 @@
       <li v-for="(group,index) in data" :key="index" ref="listgroup">
         <h4 class="list-group-title">{{ group.title }}</h4>
         <ul>
-          <li class="list-group-items" v-for="(item,index) in group.items" :key="index">
+          <li  @click="selectItem(item)" class="list-group-items" v-for="item in group.items" :key="item.id">
             <img class="avatar" v-lazy="item.avatar" alt="">
             <span class="name">{{ item.name }}</span>
           </li>
@@ -30,7 +30,7 @@
   </scroll>
 </template>
 
-<script >
+<script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import { getData } from 'common/js/dom'
@@ -72,6 +72,9 @@ export default {
     }
   },
   methods: {
+    selectItem(item) {
+      this.$emit('select', item)
+    },
     onShortcutTouchStart(e) {
       let anchorIndex = getData(e.target, 'index')
       let firstTouch = e.touches[0]

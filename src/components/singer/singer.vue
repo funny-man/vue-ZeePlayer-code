@@ -1,10 +1,13 @@
 <template>
   <div id="singer">
-    <list-view :data="singerData"></list-view>
+    <list-view :data="singerData" @select="selectSinger"></list-view>
+    <transition name="slide-fade">
+      <router-view></router-view>
+    </transition>
   </div>
 </template>
 
-<script >
+<script type="text/ecmascript-6">
 import listView from 'base/listview/listview'
 import { getSinger } from 'api/singer'
 import Singer from 'common/js/singer'
@@ -20,6 +23,14 @@ export default {
     this._getSinger()
   },
   methods: {
+    selectSinger(singer) {
+      console.log(singer)
+      //  this.$router是router的编程式的跳转接口
+      //  前面tab的跳转用的是<router-link tag="div" class="tab-item" to="/essence">
+      this.$router.push({
+        path: `/singer/${singer.id}`
+      })
+    },
     _getSinger() {
       getSinger().then(res => {
         if (res.code === ERR_OK) {
@@ -98,5 +109,13 @@ export default {
     top: 50%;
     transform: translate(0, -50%);
   }
+}
+.slide-fade-enter-active, .slide-fade-leave-active {
+  transition: all .3s ease;
+}
+.slide-fade-enter, .slide-fade-leave-to /* .slide-fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  // transform: translate3d(100%,0,0)
+  transform:scale(0)
 }
 </style>

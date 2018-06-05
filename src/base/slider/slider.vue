@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script >
+<script type="text/ecmascript-6">
 import BScroll from 'better-scroll'
 import { addClass } from 'common/js/dom'
 export default {
@@ -45,9 +45,16 @@ export default {
       }
     }, 20)
     window.addEventListener('resize', () => {
+      if (!this.slider) {
+        return
+      }
+      console.log('改变窗口')
       this._setSliderWidth(true)
-      //  better-scroll一个接口重新new BScroll
+      //  refresh是better-scroll的一个接口重新new BScroll
       this.slider.refresh()
+      if (this.autoPlay) {
+        this._play()
+      }
     })
   },
   //  生命周期钩子；keep-alive 组件激活时调用。该钩子在服务器端渲染期间不被调用。

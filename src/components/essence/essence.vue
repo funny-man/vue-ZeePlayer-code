@@ -38,7 +38,7 @@
   </div>
 </template>
 
-<script >
+<script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
 import Loading from 'base/loading/loading'
