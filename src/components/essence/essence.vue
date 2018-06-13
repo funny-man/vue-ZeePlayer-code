@@ -150,14 +150,14 @@ export default {
             .text-ct {
               h3 {
                 color: $color-text-l;
-                font-size: 15px;
+                font-size: $font-size-m;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
               }
               p {
                 color: $color-text-s;
-                font-size: 10px;
+                font-size: $font-size-s;
                 margin-top: 11px;
                 text-overflow: ellipsis;
                 white-space: nowrap;

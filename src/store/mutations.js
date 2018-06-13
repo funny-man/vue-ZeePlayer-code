@@ -5,3 +5,5 @@ const matutaions = {
     state.singer = singer
   }
 }
+
+export default matutaions
