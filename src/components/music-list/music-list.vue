@@ -8,7 +8,10 @@
       <h3 class="title" v-html="title"></h3>
     </div>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
-      <div class="filter" ref="filter"></div>
+      <div class="filter" :style="setBlur" ref="filter"></div>
+    </div>
+    <div class="play-btn" v-show="songs.length">
+      <i class="vue-music-icon icon-play-a"></i>
     </div>
     <div class="bg-layer" ref="layer"></div>
     <scroll
@@ -22,6 +25,9 @@
       <div class="song-list-wrapper">
         <song-list :songs="songs"></song-list>
       </div>
+      <div class="loading-ct"  v-show="!songs.length">
+        <loading></loading>
+      </div>
     </scroll>
   </div>
 </template>
@@ -29,8 +35,11 @@
 <script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
+import Loading from 'base/loading/loading'
+import { prefixStyle } from 'common/js/dom'
 
 const NAV_HEIGHT = 44
+const transform = prefixStyle('transform')
 
 export default {
   props: {
@@ -49,12 +58,17 @@ export default {
   },
   data() {
     return {
-      scrollY: 0
+      scrollY: 0,
+      blur: 0
     }
   },
   computed: {
     bgStyle() {
       return `background-image:url(${this.bgImage})`
+    },
+    setBlur() {
+      console.log(transform)
+      return `backdrop-filter:blur(${this.blur}px);-webkit-backdrop-filter:blur(${this.blur}px);`
     }
   },
   created() {
@@ -79,35 +93,30 @@ export default {
       let translateY = Math.max(this.minTranslateY, newVal)
       let scale = 1
       let percent = Math.abs(newVal / this.imageHeight)
-      let blur = 0
-
-      this.$refs.layer.style['transform'] = `translate3d(0,${translateY}px,0)`
-      this.$refs.layer.style['webkitTransform'] = `translate3d(0,${translateY}px,0)`
+      this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
       //  判断下滑放大图片
       if (newVal > 0) {
         scale = 1 + percent
-        this.$refs.bgImage.style['transform'] = `scale(${scale})`
-        this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
+        this.$refs.bgImage.style[transform] = `scale(${scale})`
       } else {
         // 定义模糊之的大小
-        blur = Math.min(20 * percent, 20)
+        this.blur = Math.min(20 * percent, 20)
       }
       if (newVal < this.minTranslateY) {
         this.$refs.bgImage.style.zIndex = 1
         this.$refs.bgImage.style.paddingTop = `${NAV_HEIGHT}px`
+        this.$refs.filter.style.backgroundColor = `#f54074`
       } else {
         this.$refs.bgImage.style.zIndex = 0
         this.$refs.bgImage.style.paddingTop = '70%'
+        this.$refs.filter.style.backgroundColor = ``
       }
-      // 高斯模糊功能仅限ios使用；安卓上没有效果也不影响
-      this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
-      this.$refs.filter.style['wibkitBackdrop-filter'] = `blur(${blur}px)`
-      console.log(this.$refs.filter.style)
     }
   },
   components: {
     Scroll,
-    SongList
+    SongList,
+    Loading
   }
 }
 </script>
@@ -157,8 +166,25 @@ export default {
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(7, 17, 27, 0.4);
-      // backdrop-filter:blur(3.153598335759268px);
+      background: rgba(8, 22, 36, 0.4);
+      transition: 1s background-color;
+    }
+  }
+  .play-btn {
+    position: fixed;
+    z-index: 20;
+    bottom: 20px;
+    left: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, 0);
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    background-image: radial-gradient(70px at 55px 10px, $color-theme-1, $color-theme-2);
+    box-shadow: 0 4px 13px rgba(8, 7, 48, 0.7);
+    .icon-play-a {
+      font-size: 25px;
+      line-height: 60px;
     }
   }
   .bg-layer {
@@ -172,6 +198,15 @@ export default {
     bottom: 0;
     width: 100%;
     // overflow: hidden;
+    .song-list-wrapper {
+      margin-top: 10px;
+    }
+    .loading-ct {
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
   }
 }
 </style>
