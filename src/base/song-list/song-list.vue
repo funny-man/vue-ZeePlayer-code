@@ -1,7 +1,7 @@
 <template>
   <div class="song-list">
     <ul>
-      <li v-for="(song,index) in songs" :key="index" class="item">
+      <li v-for="(song,index) in songs" :key="index" class="item" @click="selectItem(song,index)">
         <div class="text">
           <div class="text-ct">
             <h3 class="name">{{ song.name }}</h3>
@@ -26,6 +26,9 @@ export default {
   methods: {
     getDesc(song) {
       return `${song.singer}~${song.album}`
+    },
+    selectItem(item, index) {
+      this.$emit('seletc', item, index)
     }
   }
 }
@@ -34,6 +37,7 @@ export default {
 @import "~common/sass/variable.scss";
 .song-list {
   > ul {
+    padding-bottom: 30px;
     > li {
       display: flex;
       align-items: center;

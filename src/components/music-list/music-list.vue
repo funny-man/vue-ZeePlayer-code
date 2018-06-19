@@ -1,6 +1,5 @@
 <template>
   <div class="music-list">
-
     <div class="header">
       <div class="back">
         <i class="vue-music-icon icon-narrow" @click="goBack"></i>
@@ -23,7 +22,7 @@
       @scroll="scroll"
     >
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @seletc="selectItem"></song-list>
       </div>
       <div class="loading-ct"  v-show="!songs.length">
         <loading></loading>
@@ -37,6 +36,7 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { prefixStyle } from 'common/js/dom'
+import { mapActions } from 'vuex'
 
 const NAV_HEIGHT = 44
 const transform = prefixStyle('transform')
@@ -67,7 +67,6 @@ export default {
       return `background-image:url(${this.bgImage})`
     },
     setBlur() {
-      console.log(transform)
       return `backdrop-filter:blur(${this.blur}px);-webkit-backdrop-filter:blur(${this.blur}px);`
     }
   },
@@ -86,7 +85,18 @@ export default {
     },
     scroll(pos) {
       this.scrollY = pos.y
-    }
+    },
+    selectItem(item, index) {
+      console.log(item)
+      console.log(index)
+      this.selectPlay({
+        list: this.songs,
+        index
+      })
+    },
+    ...mapActions([
+      'selectPlay'
+    ])
   },
   watch: {
     scrollY(newVal) {
@@ -136,13 +146,13 @@ export default {
     right: 0;
     z-index: 2;
     text-align: center;
+    color: #fff;
     .back {
       position: absolute;
       padding-left: 10px;
       .icon-narrow {
         display: inline-block;
         font-size: 26px;
-        color: #fff;
         padding: 9px;
         transform: rotate(45deg);
       }
@@ -150,6 +160,7 @@ export default {
     .title {
       display: inline-block;
       line-height: 44px;
+      font-size: $font-size-m;
     }
   }
   .bg-image {
@@ -180,7 +191,11 @@ export default {
     width: 60px;
     height: 60px;
     text-align: center;
-    background-image: radial-gradient(70px at 55px 10px, $color-theme-1, $color-theme-2);
+    background-image: radial-gradient(
+      60px at 40px 20px,
+      $color-theme-1,
+      $color-theme-2
+    );
     box-shadow: 0 4px 13px rgba(8, 7, 48, 0.7);
     .icon-play-a {
       font-size: 25px;
