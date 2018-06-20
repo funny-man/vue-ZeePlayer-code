@@ -1,6 +1,6 @@
 // 通过类的初始化处理song数据保留需要用到的
 export default class Song {
-  constructor({ id, mid, singer, name, album, duration, image, url }) {
+  constructor({ id, mid, singer, name, album, duration, image }) {
     this.id = id
     this.mid = mid
     this.singer = singer
@@ -8,7 +8,6 @@ export default class Song {
     this.album = album
     this.duration = duration
     this.image = image
-    this.url = url
   }
 }
 export function createSong(musicData) {
@@ -19,8 +18,7 @@ export function createSong(musicData) {
     name: musicData.songname,
     album: musicData.albumname,
     duration: musicData.interval,
-    image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
-    url: `http://ws.stream.qqmusic.qq.com/${musicData.songid}.m4a?fromtag=46`
+    image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`
   })
 }
 function filterSinger(singer) {

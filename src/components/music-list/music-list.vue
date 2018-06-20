@@ -4,13 +4,17 @@
       <div class="back">
         <i class="vue-music-icon icon-narrow" @click="goBack"></i>
       </div>
+      <div class="play" v-show="showPlay">
+        <i class="vue-music-icon icon-play-a"></i>
+      </div>
       <h3 class="title" v-html="title"></h3>
     </div>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
+      <div class="play-btn" v-show="songs.length" ref="playBtn">
+        <i class="vue-music-icon icon-play-a"></i>
+        <span>随机播放</span>
+      </div>
       <div class="filter" :style="setBlur" ref="filter"></div>
-    </div>
-    <div class="play-btn" v-show="songs.length">
-      <i class="vue-music-icon icon-play-a"></i>
     </div>
     <div class="bg-layer" ref="layer"></div>
     <scroll
@@ -36,7 +40,9 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { prefixStyle } from 'common/js/dom'
-import { mapActions } from 'vuex'
+import { mapActions, mapMutations } from 'vuex'
+import { getSongKey } from 'api/song-key'
+import { ERR_OK } from 'api/jsonp-data-config'
 
 const NAV_HEIGHT = 44
 const transform = prefixStyle('transform')
@@ -59,7 +65,8 @@ export default {
   data() {
     return {
       scrollY: 0,
-      blur: 0
+      blur: 0,
+      showPlay: false
     }
   },
   computed: {
@@ -87,16 +94,26 @@ export default {
       this.scrollY = pos.y
     },
     selectItem(item, index) {
-      console.log(item)
-      console.log(index)
+      this._getSongKey(item.mid)
       this.selectPlay({
         list: this.songs,
         index
       })
     },
+    _getSongKey(id) {
+      getSongKey(id).then(res => {
+        if (res.code === ERR_OK) {
+          console.log(res.data.items[0])
+          this.setSongKey(res.data.items[0])
+        }
+      })
+    },
     ...mapActions([
       'selectPlay'
-    ])
+    ]),
+    ...mapMutations({
+      setSongKey: 'SET_SONG_KEY'
+    })
   },
   watch: {
     scrollY(newVal) {
@@ -116,10 +133,14 @@ export default {
         this.$refs.bgImage.style.zIndex = 1
         this.$refs.bgImage.style.paddingTop = `${NAV_HEIGHT}px`
         this.$refs.filter.style.backgroundColor = `#f54074`
+        this.$refs.playBtn.style.bottom = `1000px`
+        this.showPlay = true
       } else {
         this.$refs.bgImage.style.zIndex = 0
         this.$refs.bgImage.style.paddingTop = '70%'
         this.$refs.filter.style.backgroundColor = ``
+        this.$refs.playBtn.style.bottom = `20px`
+        this.showPlay = false
       }
     }
   },
@@ -157,6 +178,16 @@ export default {
         transform: rotate(45deg);
       }
     }
+    .play {
+      position: absolute;
+      right: 0;
+      padding-right: 10px;
+      .icon-play-a {
+        display: inline-block;
+        font-size: 26px;
+        padding: 9px;
+      }
+    }
     .title {
       display: inline-block;
       line-height: 44px;
@@ -171,6 +202,34 @@ export default {
     padding-top: 70%;
     background-size: cover;
     transform-origin: top;
+    .play-btn {
+      position: absolute;
+      z-index: 20;
+      bottom: 20px;
+      left: 50%;
+      transform: translate(-50%, 0);
+      padding: 8px 16px;
+      text-align: center;
+      background-image: radial-gradient(
+        150px at 100px 0px,
+        $color-theme-1,
+        $color-theme-2
+      );
+      border-radius: 100px;
+      box-shadow: 0 4px 13px rgba(8, 7, 48, 0.7);
+      .icon-play-a {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 20px;
+        opacity: 0.7;
+      }
+      > span {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: $font-size-s-x;
+        opacity: 0.7;
+      }
+    }
     .filter {
       position: absolute;
       top: 0;
@@ -179,27 +238,6 @@ export default {
       height: 100%;
       background: rgba(8, 22, 36, 0.4);
       transition: 1s background-color;
-    }
-  }
-  .play-btn {
-    position: fixed;
-    z-index: 20;
-    bottom: 20px;
-    left: 50%;
-    border-radius: 50%;
-    transform: translate(-50%, 0);
-    width: 60px;
-    height: 60px;
-    text-align: center;
-    background-image: radial-gradient(
-      60px at 40px 20px,
-      $color-theme-1,
-      $color-theme-2
-    );
-    box-shadow: 0 4px 13px rgba(8, 7, 48, 0.7);
-    .icon-play-a {
-      font-size: 25px;
-      line-height: 60px;
     }
   }
   .bg-layer {

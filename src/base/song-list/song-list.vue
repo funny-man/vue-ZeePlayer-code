@@ -37,7 +37,7 @@ export default {
 @import "~common/sass/variable.scss";
 .song-list {
   > ul {
-    padding-bottom: 30px;
+    // padding-bottom: 76px;
     > li {
       display: flex;
       align-items: center;

@@ -21,6 +21,9 @@ const matutaions = {
   },
   [types.SET_CURRENT_INDEX](state, index) {
     state.currentIndex = index
+  },
+  [types.SET_SONG_KEY](state, key) {
+    state.songKey = key
   }
 }
 
