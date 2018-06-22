@@ -1,6 +1,11 @@
 <template>
   <div class="player" v-show="playlist.length>0">
-    <transition name="normal">
+    <transition name="normal"
+                @enter="enter"
+                @after-enter="afterEnter"
+                @leave="leave"
+                @after-leave="afterLeave"
+    >
       <div class="normal-player" v-show="fullScreen">
         <div class="header">
           <div class="back" @click="toggle">
@@ -10,8 +15,8 @@
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd">
-              <img class="cd-image" :src="currentSong.image">
+            <div class="cd" ref="cd">
+              <img class="cd-image" v-lazy="currentSong.image">
             </div>
             <div class="text">
               <h3 class="song-name" v-html="currentSong.name"></h3>
@@ -62,21 +67,22 @@
           <h3 class="song-name" v-html="currentSong.name"></h3>
           <p class="singer-name" v-html="currentSong.singer"></p>
         </div>
-        <div class="btn">
+        <div class="btn play-btn" @click.stop="gogo">
           <i class="vue-music-icon icon-play-a"></i>
         </div>
-        <div class="btn">
+        <div class="btn list-btn">
           <i class="vue-music-icon icon-song-list"></i>
         </div>
       </div>
     </transition>
 
-    <audio :src="songUrl" autoplay="autoplay"></audio>
+    <audio :src="songUrl" v-if="songKey" ref="audio"></audio>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import { mapGetters, mapMutations } from 'vuex'
+import animations from 'create-keyframe-animation'
 
 export default {
   computed: {
@@ -91,6 +97,9 @@ export default {
     ])
   },
   methods: {
+    gogo() {
+      console.log(9090)
+    },
     toggle() {
       if (this.fullScreen) {
         this.setFullScreen(false)
@@ -98,9 +107,105 @@ export default {
         this.setFullScreen(true)
       }
     },
+    enter(el, done) {
+      const { x, y, scale } = this._getPosAndScale()
+      let animation = {
+        0: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        },
+        60: {
+          transform: `translate3d(0,0,0) scale(${1.1})`
+        },
+        100: {
+          transform: `translate3d(0,0,0) scale(${1})`
+        }
+      }
+
+      //  定义动画
+      animations.registerAnimation({
+        name: 'enterMove',
+        // the actual array of animation changes
+        animation,
+        // optional presets for when actually running the animation
+        presets: {
+          duration: 400,
+          easing: 'linear'
+        }
+      })
+
+      // 运行
+      // done是一个回调 动画执行完成就会执行这个函数然后进行下一个动画
+      animations.runAnimation(this.$refs.cd, 'enterMove', done)
+    },
+    afterEnter() {
+      animations.unregisterAnimation('enterMove')
+      this.$refs.cd.style.animation = ''
+    },
+    leave(el, done) {
+      const { x, y, scale } = this._getPosAndScale()
+      let animation = {
+        0: {
+          transform: `translate3d(0,0,0) scale(${1})`
+        },
+        100: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        }
+      }
+
+      //  定义动画
+      animations.registerAnimation({
+        name: 'leaveMove',
+        // the actual array of animation changes
+        animation,
+        // optional presets for when actually running the animation
+        presets: {
+          duration: 400,
+          easing: 'linear'
+        }
+      })
+
+      // 运行
+      // done是一个回调 动画执行完成就会执行这个函数然后进行下一个动画
+      animations.runAnimation(this.$refs.cd, 'leaveMove', done)
+    },
+    afterLeave() {
+      animations.unregisterAnimation('leaveMove')
+      this.$refs.cd.style.animation = ''
+    },
+    // 这个函数计算cd要缩放大小以及移动坐标
+    _getPosAndScale() {
+      // 屏幕宽高
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+
+      const targetCdWidth = 50
+      const targetCdLeft = 50
+      const targetCdBottom = 19
+      const cdWidth = vw * 0.6
+      const cdTop = targetCdWidth / 60
+
+      // 缩放比例
+      const scale = targetCdWidth / cdWidth
+      const x = -(vw / 2 - targetCdLeft)
+      const y = vh - cdTop - targetCdBottom
+
+      return {
+        x,
+        y,
+        scale
+      }
+    },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN'
     })
+  },
+  watch: {
+    songUrl() {
+      console.log(11111)
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    }
   }
 }
 </script>
@@ -140,18 +245,19 @@ export default {
       }
     }
     .middle {
-      margin-top: 9vh;
+      margin-top: 60px;
       text-align: center;
       .middle-l {
         .cd {
           display: inline-block;
           width: 60vw;
+          height: 60vw;
           border-radius: 50%;
           .cd-image {
             display: block;
             width: 100%;
             border-radius: 50%;
-            box-shadow: 0 4px 13px rgba(8, 7, 48, 0.7);
+            box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
           }
         }
         .text {
@@ -286,14 +392,14 @@ export default {
     display: flex;
     align-items: center;
     position: fixed;
-    right: 6px;
-    bottom: 6px;
-    left: 6px;
+    right: 5px;
+    bottom: 5px;
+    left: 5px;
     height: 64px;
     border-radius: 5px;
     // background-color: $color-bg;
     background-color: rgba(29, 36, 52, 0.95);
-    box-shadow: 0px 4px 9px rgba($color: #090f1c, $alpha: 0.7);
+    box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
     .cd {
       display: inline-block;
       width: 50px;
@@ -327,7 +433,7 @@ export default {
       }
     }
     .btn {
-      margin-right: 20px;
+      padding: 14px;
       .icon-play-a {
         font-size: 30px;
         color: $color-theme-1;
