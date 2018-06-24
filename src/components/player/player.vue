@@ -8,14 +8,14 @@
     >
       <div class="normal-player" v-show="fullScreen">
         <div class="header">
-          <div class="back" @click="toggle">
+          <div class="back" @click="togglePanel">
             <i class="vue-music-icon icon-narrow"></i>
           </div>
           <h3 class="title">PLAYER</h3>
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd" ref="cd">
+            <div class="cd" :class="cdRotate" ref="cd">
               <img class="cd-image" v-lazy="currentSong.image">
             </div>
             <div class="text">
@@ -31,8 +31,8 @@
               <div class="line-playing"></div>
               <div class="line-loading"></div>
               <div class="play-time">
-                  <span class="cur">--:--</span>
-                  <span class="total">--:--</span>
+                  <span class="cur">{{curTime}}</span>
+                  <span class="total">{{totalTime}}</span>
               </div>
             </div>
           </div>
@@ -41,13 +41,13 @@
             <div class="btn play-mod">
               <i class="vue-music-icon icon-loop-list"></i>
             </div>
-            <div class="btn prev">
+            <div class="btn prev" @click="prev">
               <i class="vue-music-icon icon-prev"></i>
             </div>
-            <div class="btn play">
-              <i class="vue-music-icon icon-play-b"></i>
+            <div class="btn playing" @click="togglePlaying">
+              <i class="vue-music-icon" :class="playIcon"></i>
             </div>
-            <div class="btn next">
+            <div class="btn next" @click="next">
               <i class="vue-music-icon icon-next"></i>
             </div>
             <div class="btn collection">
@@ -59,24 +59,31 @@
     </transition>
 
     <transition name="mini">
-      <div class="mini-player" v-show="!fullScreen" @click="toggle">
-        <div class="cd">
+      <div class="mini-player" v-show="!fullScreen" @click="togglePanel">
+        <div class="cd" :class="cdRotate">
           <img class="cd-image" :src="currentSong.image">
         </div>
         <div class="text">
           <h3 class="song-name" v-html="currentSong.name"></h3>
           <p class="singer-name" v-html="currentSong.singer"></p>
         </div>
-        <div class="btn play-btn" @click.stop="gogo">
-          <i class="vue-music-icon icon-play-a"></i>
+        <div class="btn play-btn" @click.stop="togglePlaying">
+          <i class="vue-music-icon" :class="playIcon"></i>
         </div>
-        <div class="btn list-btn">
+        <div class="btn list-btn" @click.stop="play">
           <i class="vue-music-icon icon-song-list"></i>
         </div>
       </div>
     </transition>
 
-    <audio :src="songUrl" v-if="songKey" ref="audio"></audio>
+    <audio  :src="songUrl"
+            v-if="currentSong"
+            autoplay="autoplay"
+            ref="audio"
+            @canplay="ready"
+            @error="error"
+            @timeupdate="updateTime"
+    ></audio>
   </div>
 </template>
 
@@ -85,28 +92,85 @@ import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 
 export default {
+  data() {
+    return {
+      totalTime: '--:--',
+      curTime: '--:--',
+      shouldUpdate: true
+    }
+  },
   computed: {
     songUrl() {
-      return `http://dl.stream.qqmusic.qq.com/${this.songKey.filename}?vkey=${this.songKey.vkey}&guid=7342124872&uin=0&fromtag=66`
+      if (!this.currentSong) return
+      return `http://dl.stream.qqmusic.qq.com/${this.currentSong.key.filename}?vkey=${this.currentSong.key.vkey}&guid=7342124872&uin=0&fromtag=66`
+    },
+    playIcon() {
+      return this.playing ? 'icon-pause-b' : 'icon-play-b'
+    },
+    cdRotate() {
+      return this.playing ? 'play' : 'play pause'
     },
     ...mapGetters([
       'fullScreen',
       'playlist',
       'currentSong',
-      'songKey'
+      'playing',
+      'currentIndex'
     ])
   },
   methods: {
-    gogo() {
-      console.log(9090)
+    togglePanel() {
+      this.setFullScreen(!this.fullScreen)
     },
-    toggle() {
-      if (this.fullScreen) {
-        this.setFullScreen(false)
-      } else {
-        this.setFullScreen(true)
+    togglePlaying() {
+      this.setPlayingState(!this.playing)
+    },
+    play() {
+      this.$refs.audio.play()
+      this.setPlayingState(true)
+    },
+    // pause() {
+    //   this.$refs.audio.pause()
+    //   this.setPlayingState(false)
+    // },
+    next() {
+      console.log('next')
+      let index = this.currentIndex + 1
+      if (index === this.playlist.length) {
+        index = 0
       }
+      this.setCurrentIndex(index)
     },
+    prev() {
+      console.log('prev')
+      let index = this.currentIndex - 1
+      if (index === -1) {
+        index = this.playlist.length - 1
+      }
+      this.setCurrentIndex(index)
+    },
+    ready(e) {
+      console.log(e)
+      this.play()
+      this.totalTime = this.format(e.target.duration)
+    },
+    updateTime(e) {
+      if (!this.shouldUpdate) return
+      this.shouldUpdate = false
+      setTimeout(() => {
+        this.curTime = this.format(e.target.currentTime)
+        this.shouldUpdate = true
+      }, 1000)
+    },
+    // 该函数把获取的事件设置成--：--格式
+    format(time) {
+      let min = Math.floor(time / 60)
+      let sec = Math.floor(time % 60)
+      let minStr = min >= 10 ? min : '0' + min
+      let secStr = sec >= 10 ? sec : '0' + sec
+      return minStr + ':' + secStr
+    },
+    error() { },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale()
       let animation = {
@@ -196,15 +260,16 @@ export default {
       }
     },
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCurrentIndex: 'SET_CURRENT_INDEX'
     })
   },
   watch: {
-    songUrl() {
-      console.log(11111)
-      this.$nextTick(() => {
-        this.$refs.audio.play()
-      })
+    playing(newPlaying) {
+      let audio = this.$refs.audio
+      if (!audio) return
+      newPlaying ? audio.play() : audio.pause()
     }
   }
 }
@@ -253,6 +318,12 @@ export default {
           width: 60vw;
           height: 60vw;
           border-radius: 50%;
+          &.play {
+            animation: rotate 20s linear infinite;
+          }
+          &.pause {
+            animation-play-state: paused;
+          }
           .cd-image {
             display: block;
             width: 100%;
@@ -286,7 +357,7 @@ export default {
       position: fixed;
       left: 0;
       right: 0;
-      bottom: 40px;
+      bottom: 30px;
       .line-ct {
         display: flex;
         justify-content: space-around;
@@ -350,16 +421,21 @@ export default {
         }
       }
       .btns {
-        margin-top: 60px;
+        margin-top: 50px;
         display: flex;
         justify-content: space-around;
         align-items: center;
         .btn {
           color: $color-icon-3;
+          padding: 10px;
           > .vue-music-icon {
             font-size: 24px;
           }
           .icon-play-b {
+            font-size: 60px;
+            color: $color-theme-1;
+          }
+          .icon-pause-b {
             font-size: 60px;
             color: $color-theme-1;
           }
@@ -405,12 +481,19 @@ export default {
       width: 50px;
       margin-left: 20px;
       border-radius: 50%;
+      &.play {
+        animation: rotate 20s linear infinite;
+      }
+      &.pause {
+        animation-play-state: paused;
+      }
       .cd-image {
         display: block;
         width: 100%;
         border-radius: 50%;
       }
     }
+
     .text {
       flex: 1;
       margin-left: 10px;
@@ -434,7 +517,11 @@ export default {
     }
     .btn {
       padding: 14px;
-      .icon-play-a {
+      .icon-play-b {
+        font-size: 30px;
+        color: $color-theme-1;
+      }
+      .icon-pause-b {
         font-size: 30px;
         color: $color-theme-1;
       }
@@ -449,6 +536,14 @@ export default {
   }
   .mini-enter, .mini-leave-to /* .mini-leave-active below version 2.1.8 */ {
     opacity: 0;
+  }
+}
+@keyframes rotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

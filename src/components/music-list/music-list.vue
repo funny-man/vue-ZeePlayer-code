@@ -40,9 +40,7 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { prefixStyle } from 'common/js/dom'
-import { mapActions, mapMutations } from 'vuex'
-import { getSongKey } from 'api/song-key'
-import { ERR_OK } from 'api/jsonp-data-config'
+import { mapActions } from 'vuex'
 
 const NAV_HEIGHT = 44
 const transform = prefixStyle('transform')
@@ -94,25 +92,14 @@ export default {
       this.scrollY = pos.y
     },
     selectItem(item, index) {
-      this._getSongKey(item.mid)
       this.selectPlay({
         list: this.songs,
         index
       })
     },
-    _getSongKey(id) {
-      getSongKey(id).then(res => {
-        if (res.code === ERR_OK) {
-          this.setSongKey(res.data.items[0])
-        }
-      })
-    },
     ...mapActions([
       'selectPlay'
-    ]),
-    ...mapMutations({
-      setSongKey: 'SET_SONG_KEY'
-    })
+    ])
   },
   watch: {
     scrollY(newVal) {
