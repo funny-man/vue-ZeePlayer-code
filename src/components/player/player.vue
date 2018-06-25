@@ -15,8 +15,10 @@
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd" :class="cdRotate" ref="cd">
-              <img class="cd-image" v-lazy="currentSong.image">
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd" :class="cdRotate" ref="cd">
+                <img class="cd-image" v-lazy="currentSong.image">
+              </div>
             </div>
             <div class="text">
               <h3 class="song-name" v-html="currentSong.name"></h3>
@@ -26,17 +28,27 @@
           <div class="middle-r"></div>
         </div>
         <div class="bottom">
-          <div class="line-ct">
-            <div class="line">
-              <div class="line-playing"></div>
-              <div class="line-loading"></div>
-              <div class="play-time">
-                  <span class="cur">{{curTime}}</span>
-                  <span class="total">{{totalTime}}</span>
+          <div class="progressbar-ct">
+            <div class="progressbar-wrapper"
+                 ref="progressbarWrapper"
+                 @touchstart.prevent="progressTouchStart"
+            >
+              <div class="progressbar">
+                <div class="progressbar-cur" :style="progressBarCur">
+                  <div class="progressbar-btn"
+                       @touchstart.prevent.stop="progressBtnTouchStart"
+                       @touchmove.prevent.stop="progressBtnTouchMove"
+                       @touchend.prevent="progressBtnTouchEnd"
+                  ></div>
+                </div>
+                <div class="progressbar-loading"></div>
+                <div class="play-time">
+                    <span class="cur">{{ format(curTime) }}</span>
+                    <span class="total">{{ format(totalTime) }}</span>
+                </div>
               </div>
             </div>
           </div>
-
           <div class="btns">
             <div class="btn play-mod">
               <i class="vue-music-icon icon-loop-list"></i>
@@ -60,8 +72,10 @@
 
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="togglePanel">
-        <div class="cd" :class="cdRotate">
-          <img class="cd-image" :src="currentSong.image">
+        <div class="mini-cd-wrapper">
+          <div class="cd" :class="cdRotate">
+            <img class="cd-image" :src="currentSong.image">
+          </div>
         </div>
         <div class="text">
           <h3 class="song-name" v-html="currentSong.name"></h3>
@@ -94,12 +108,16 @@ import animations from 'create-keyframe-animation'
 export default {
   data() {
     return {
-      totalTime: '--:--',
-      curTime: '--:--',
-      shouldUpdate: true
+      totalTime: 0,
+      curTime: 0,
+      shouldUpdate: true,
+      touch: {}
     }
   },
   computed: {
+    progressBarCur() {
+      return `width: ${this.curTime / this.totalTime * 100}%;`
+    },
     songUrl() {
       if (!this.currentSong) return
       return `http://dl.stream.qqmusic.qq.com/${this.currentSong.key.filename}?vkey=${this.currentSong.key.vkey}&guid=7342124872&uin=0&fromtag=66`
@@ -119,6 +137,29 @@ export default {
     ])
   },
   methods: {
+    progressTouchStart(e) {
+      console.log(111111)
+      let pageX = e.touches[0].pageX
+      let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
+      let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
+      // 通过百分比和歌曲总长度计算要定位的时长
+      // 这里其实可以不设置this.curTime的值也会触发@timeupdate事件修改
+      // 但是出发时间有时间差导致点击后等一下进度条才会变化没有跟随
+      this.curTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+    },
+    progressBtnTouchStart(e) {
+      this.touch.pageX = e.touches[0].pageX
+    },
+    progressBtnTouchMove(e) {
+      let pageX = e.touches[0].pageX
+      let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
+      let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
+
+      this.curTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+    },
+    progressBtnTouchEnd() { },
     togglePanel() {
       this.setFullScreen(!this.fullScreen)
     },
@@ -150,15 +191,15 @@ export default {
       this.setCurrentIndex(index)
     },
     ready(e) {
-      console.log(e)
       this.play()
-      this.totalTime = this.format(e.target.duration)
+      this.totalTime = e.target.duration
     },
+    error() { },
     updateTime(e) {
       if (!this.shouldUpdate) return
       this.shouldUpdate = false
       setTimeout(() => {
-        this.curTime = this.format(e.target.currentTime)
+        this.curTime = e.target.currentTime
         this.shouldUpdate = true
       }, 1000)
     },
@@ -170,7 +211,6 @@ export default {
       let secStr = sec >= 10 ? sec : '0' + sec
       return minStr + ':' + secStr
     },
-    error() { },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale()
       let animation = {
@@ -199,11 +239,11 @@ export default {
 
       // 运行
       // done是一个回调 动画执行完成就会执行这个函数然后进行下一个动画
-      animations.runAnimation(this.$refs.cd, 'enterMove', done)
+      animations.runAnimation(this.$refs.cdWrapper, 'enterMove', done)
     },
     afterEnter() {
       animations.unregisterAnimation('enterMove')
-      this.$refs.cd.style.animation = ''
+      this.$refs.cdWrapper.style.animation = ''
     },
     leave(el, done) {
       const { x, y, scale } = this._getPosAndScale()
@@ -230,11 +270,11 @@ export default {
 
       // 运行
       // done是一个回调 动画执行完成就会执行这个函数然后进行下一个动画
-      animations.runAnimation(this.$refs.cd, 'leaveMove', done)
+      animations.runAnimation(this.$refs.cdWrapper, 'leaveMove', done)
     },
     afterLeave() {
       animations.unregisterAnimation('leaveMove')
-      this.$refs.cd.style.animation = ''
+      this.$refs.cdWrapper.style.animation = ''
     },
     // 这个函数计算cd要缩放大小以及移动坐标
     _getPosAndScale() {
@@ -313,22 +353,25 @@ export default {
       margin-top: 60px;
       text-align: center;
       .middle-l {
-        .cd {
+        .cd-wrapper {
           display: inline-block;
-          width: 60vw;
-          height: 60vw;
-          border-radius: 50%;
-          &.play {
-            animation: rotate 20s linear infinite;
-          }
-          &.pause {
-            animation-play-state: paused;
-          }
-          .cd-image {
-            display: block;
-            width: 100%;
+          .cd {
+            display: inline-block;
+            width: 60vw;
+            height: 60vw;
             border-radius: 50%;
-            box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
+            &.play {
+              animation: rotate 20s linear infinite;
+            }
+            &.pause {
+              animation-play-state: paused;
+            }
+            .cd-image {
+              display: block;
+              width: 100%;
+              border-radius: 50%;
+              box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
+            }
           }
         }
         .text {
@@ -357,71 +400,79 @@ export default {
       position: fixed;
       left: 0;
       right: 0;
+      width: 100%;
       bottom: 30px;
-      .line-ct {
-        display: flex;
-        justify-content: space-around;
-        .line {
-          position: relative;
+      .progressbar-ct {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        .progressbar-wrapper {
           display: inline-block;
           width: 90%;
-          height: 2px;
-          border-radius: 1000px;
-          background-color: $color-timeline;
-          .line-playing::before {
-            content: "";
+          height: 22px;
+          .progressbar {
+            position: relative;
             display: inline-block;
-            position: absolute;
-            top: -9px;
-            right: -9px;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #ffeaf0;
-            border-radius: 50%;
-            background-color: $color-theme-1;
-          }
-          .line-playing {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 2;
+            width: 100%;
             height: 2px;
-            width: 120px;
             border-radius: 1000px;
-            background-image: linear-gradient(
-              left,
-              $color-theme-2,
-              $color-theme-1
-            );
-          }
-          .line-loading {
-            position: absolute;
-            z-index: 1;
-            background-color: $color-timeline-loading;
-            top: 0;
-            left: 0;
-            height: 2px;
-            width: 240px;
-            border-radius: 1000px;
-          }
-          .play-time {
-            font-size: $font-size-s;
-            color: $color-theme-text-s;
-            .cur {
+            background-color: $color-timeline;
+            .progressbar-cur {
               position: absolute;
-              top: 16px;
+              top: 0;
               left: 0;
+              z-index: 2;
+              height: 100%;
+              width: 0;
+              border-radius: 1000px;
+              transition: all 0.4s;
+              background-image: linear-gradient(
+                left,
+                $color-theme-2,
+                $color-theme-1
+              );
+              .progressbar-btn {
+                display: inline-block;
+                position: absolute;
+                top: 50%;
+                right: 0px;
+                width: 18px;
+                transform: translate3d(50%, -50%, 0);
+                height: 18px;
+                border: 2px solid #ffeaf0;
+                border-radius: 50%;
+                background-color: $color-theme-1;
+              }
             }
-            .total {
-              top: 16px;
+            .progressbar-loading {
               position: absolute;
-              right: 0;
+              z-index: 1;
+              background-color: $color-timeline-loading;
+              top: 0;
+              left: 0;
+              height: 100%;
+              width: 240px;
+              border-radius: 1000px;
+            }
+            .play-time {
+              font-size: $font-size-s;
+              color: $color-theme-text-s;
+              .cur {
+                position: absolute;
+                top: 16px;
+                left: 0;
+              }
+              .total {
+                top: 16px;
+                position: absolute;
+                right: 0;
+              }
             }
           }
         }
       }
       .btns {
-        margin-top: 50px;
+        margin-top: 45px;
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -476,24 +527,26 @@ export default {
     // background-color: $color-bg;
     background-color: rgba(29, 36, 52, 0.95);
     box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
-    .cd {
+    .mini-cd-wrapper {
       display: inline-block;
-      width: 50px;
       margin-left: 20px;
-      border-radius: 50%;
-      &.play {
-        animation: rotate 20s linear infinite;
-      }
-      &.pause {
-        animation-play-state: paused;
-      }
-      .cd-image {
-        display: block;
-        width: 100%;
+      .cd {
+        display: inline-block;
+        width: 50px;
         border-radius: 50%;
+        &.play {
+          animation: rotate 20s linear infinite;
+        }
+        &.pause {
+          animation-play-state: paused;
+        }
+        .cd-image {
+          display: block;
+          width: 100%;
+          border-radius: 50%;
+        }
       }
     }
-
     .text {
       flex: 1;
       margin-left: 10px;
