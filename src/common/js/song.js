@@ -1,3 +1,6 @@
+// import { getLyric } from 'api/song'
+// import { ERR_OK } from 'api/jsonp-data-config'
+
 // 通过类的初始化处理song数据保留需要用到的
 export default class Song {
   constructor({ id, mid, singer, name, album, duration, image }) {
@@ -9,6 +12,14 @@ export default class Song {
     this.duration = duration
     this.image = image
   }
+  // getLyric() {
+  //   getLyric(this.mid).then((res) => {
+  //     if (res.retcode === ERR_OK) {
+  //       this.lyric = res.lyric
+  //       console.log(this.lyric)
+  //     }
+  //   })
+  // }
 }
 export function createSong(musicData) {
   return new Song({

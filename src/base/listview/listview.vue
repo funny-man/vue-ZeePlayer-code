@@ -175,7 +175,7 @@ export default {
   > ul {
     // padding-bottom: 76px;
     .list-group-title {
-      background-color: $color-timeline-loading;
+      background-color: #1c2230;;
       font-size: $font-size-s-x;
       color: $color-theme-1;
       line-height: 3;
@@ -228,7 +228,7 @@ export default {
     left: 0;
     z-index: 1;
     .fixed-title {
-      background-color: $color-timeline-loading;
+      background-color: #1c2230;
       font-size: $font-size-s-x;
       color: $color-theme-1;
       width: 100%;

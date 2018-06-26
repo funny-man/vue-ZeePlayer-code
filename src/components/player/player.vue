@@ -31,17 +31,19 @@
           <div class="progressbar-ct">
             <div class="progressbar-wrapper"
                  ref="progressbarWrapper"
-                 @touchstart.prevent="progressTouchStart"
+                 @click="progressTouchStart"
             >
               <div class="progressbar">
-                <div class="progressbar-cur" :style="progressBarCur">
+                <div class="progressbar-cur"  :class="{smooth:updateTimeLock}" :style="progressBarCur">
                   <div class="progressbar-btn"
                        @touchstart.prevent.stop="progressBtnTouchStart"
                        @touchmove.prevent.stop="progressBtnTouchMove"
-                       @touchend.prevent="progressBtnTouchEnd"
-                  ></div>
+                       @touchend.prevent.stop="progressBtnTouchEnd"
+                  >
+                    <img src="./loading.gif" :class="{loading:showLoading}">
+                  </div>
                 </div>
-                <div class="progressbar-loading"></div>
+                <div class="progressbar-loading" ref="progressbarLoading"></div>
                 <div class="play-time">
                     <span class="cur">{{ format(curTime) }}</span>
                     <span class="total">{{ format(totalTime) }}</span>
@@ -50,8 +52,8 @@
             </div>
           </div>
           <div class="btns">
-            <div class="btn play-mod">
-              <i class="vue-music-icon icon-loop-list"></i>
+            <div class="btn play-mod" @click="changeMode">
+              <i class="vue-music-icon" :class="iconMode"></i>
             </div>
             <div class="btn prev" @click="prev">
               <i class="vue-music-icon icon-prev"></i>
@@ -92,11 +94,13 @@
 
     <audio  :src="songUrl"
             v-if="currentSong"
-            autoplay="autoplay"
             ref="audio"
             @canplay="ready"
             @error="error"
             @timeupdate="updateTime"
+            @progress="progress"
+            @waiting="waiting"
+            @ended="end"
     ></audio>
   </div>
 </template>
@@ -104,6 +108,8 @@
 <script type="text/ecmascript-6">
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
+import { playMode } from 'common/js/config'
+import { shuffle } from 'common/js/util'
 
 export default {
   data() {
@@ -111,7 +117,9 @@ export default {
       totalTime: 0,
       curTime: 0,
       shouldUpdate: true,
-      touch: {}
+      touch: {},
+      updateTimeLock: true,
+      showLoading: true
     }
   },
   computed: {
@@ -125,6 +133,9 @@ export default {
     playIcon() {
       return this.playing ? 'icon-pause-b' : 'icon-play-b'
     },
+    iconMode() {
+      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+    },
     cdRotate() {
       return this.playing ? 'play' : 'play pause'
     },
@@ -133,13 +144,15 @@ export default {
       'playlist',
       'currentSong',
       'playing',
-      'currentIndex'
+      'currentIndex',
+      'mode',
+      'sequenceList'
     ])
   },
   methods: {
     progressTouchStart(e) {
-      console.log(111111)
-      let pageX = e.touches[0].pageX
+      console.log(e)
+      let pageX = e.pageX
       let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
       let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
       // 通过百分比和歌曲总长度计算要定位的时长
@@ -149,17 +162,18 @@ export default {
       this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
     },
     progressBtnTouchStart(e) {
-      this.touch.pageX = e.touches[0].pageX
+      this.updateTimeLock = false
     },
     progressBtnTouchMove(e) {
-      let pageX = e.touches[0].pageX
-      let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
-      let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
-
-      this.curTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
-      this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      this.touch.pageX = e.touches[0].pageX
+      this.touch.progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
+      this.touch.progressbarWidth = this.$refs.progressbarWrapper.clientWidth
+      this.curTime = (this.touch.pageX - this.touch.progressbarMarginLeft) / this.touch.progressbarWidth * this.totalTime
     },
-    progressBtnTouchEnd() { },
+    progressBtnTouchEnd() {
+      this.$refs.audio.currentTime = (this.touch.pageX - this.touch.progressbarMarginLeft) / this.touch.progressbarWidth * this.totalTime
+      this.updateTimeLock = true
+    },
     togglePanel() {
       this.setFullScreen(!this.fullScreen)
     },
@@ -176,6 +190,8 @@ export default {
     // },
     next() {
       console.log('next')
+      console.log(this.mode)
+      this.resetData()
       let index = this.currentIndex + 1
       if (index === this.playlist.length) {
         index = 0
@@ -184,14 +200,34 @@ export default {
     },
     prev() {
       console.log('prev')
+      this.resetData()
       let index = this.currentIndex - 1
       if (index === -1) {
         index = this.playlist.length - 1
       }
       this.setCurrentIndex(index)
     },
+    loop() {
+      this.$refs.audio.currentTime = 0
+      this.$refs.audio.play()
+    },
+    changeMode() {
+      console.log('changeMode')
+      const mode = (this.mode + 1) % 3
+      this.setPlayMode(mode)
+      let list = null
+      // 如果是随机模式则把sequenceList（原始列表）重新洗牌设置到playList
+      if (this.mode === playMode.random) {
+        list = shuffle(this.sequenceList)
+      } else {
+        list = this.sequenceList
+      }
+      this.resetCurrentIndex(list)
+      this.setPlayList(list)
+    },
     ready(e) {
-      this.play()
+      console.log('可以播放哦')
+      this.showLoading = false
       this.totalTime = e.target.duration
     },
     error() { },
@@ -199,9 +235,23 @@ export default {
       if (!this.shouldUpdate) return
       this.shouldUpdate = false
       setTimeout(() => {
-        this.curTime = e.target.currentTime
+        if (this.updateTimeLock) {
+          this.curTime = e.target.currentTime
+        }
         this.shouldUpdate = true
       }, 1000)
+    },
+    progress() {
+      console.log('loading...')
+      let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.totalTime) : 0
+      this.$refs.progressbarLoading.style.width = percent * 100 + '%'
+    },
+    waiting() {
+      console.log('不能播放哦')
+      this.showLoading = true
+    },
+    end() {
+      this.mode === playMode.loop ? this.loop() : this.next()
     },
     // 该函数把获取的事件设置成--：--格式
     format(time) {
@@ -210,6 +260,16 @@ export default {
       let minStr = min >= 10 ? min : '0' + min
       let secStr = sec >= 10 ? sec : '0' + sec
       return minStr + ':' + secStr
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex((item) => {
+        return item.id === this.currentSong.id
+      })
+      this.setCurrentIndex(index)
+    },
+    resetData() {
+      this.curTime = 0
+      this.showLoading = true
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale()
@@ -302,10 +362,19 @@ export default {
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX'
+      setCurrentIndex: 'SET_CURRENT_INDEX',
+      setPlayMode: 'SET_PLAY_MODE',
+      setPlayList: 'SET_PLAYLIST'
     })
   },
   watch: {
+    currentSong(newSong, oldSong) {
+      console.log('改变')
+      if (newSong === oldSong) return
+      this.$nextTick(() => {
+        this.play()
+      })
+    },
     playing(newPlaying) {
       let audio = this.$refs.audio
       if (!audio) return
@@ -425,7 +494,6 @@ export default {
               height: 100%;
               width: 0;
               border-radius: 1000px;
-              transition: all 0.4s;
               background-image: linear-gradient(
                 left,
                 $color-theme-2,
@@ -442,7 +510,17 @@ export default {
                 border: 2px solid #ffeaf0;
                 border-radius: 50%;
                 background-color: $color-theme-1;
+                > img {
+                  width: 100%;
+                  opacity: 0;
+                }
+                .loading {
+                  opacity: 1;
+                }
               }
+            }
+            .smooth {
+              transition: all 0.4s;
             }
             .progressbar-loading {
               position: absolute;
@@ -451,8 +529,9 @@ export default {
               top: 0;
               left: 0;
               height: 100%;
-              width: 240px;
+              width: 0;
               border-radius: 1000px;
+              transition: all 0.4s;
             }
             .play-time {
               font-size: $font-size-s;

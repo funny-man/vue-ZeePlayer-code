@@ -4,13 +4,13 @@
       <div class="back">
         <i class="vue-music-icon icon-narrow" @click="goBack"></i>
       </div>
-      <div class="play" v-show="showPlay">
+      <div class="play" v-show="showPlay" @click="random">
         <i class="vue-music-icon icon-play-a"></i>
       </div>
       <h3 class="title" v-html="title"></h3>
     </div>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
-      <div class="play-btn" v-show="songs.length" ref="playBtn">
+      <div class="play-btn" v-show="songs.length" ref="playBtn" @click="random">
         <i class="vue-music-icon icon-play-a"></i>
         <span>随机播放</span>
       </div>
@@ -97,8 +97,13 @@ export default {
         index
       })
     },
+    random() {
+      console.log('随机播放')
+      this.randomPlay(this.songs)
+    },
     ...mapActions([
-      'selectPlay'
+      'selectPlay',
+      'randomPlay'
     ])
   },
   watch: {

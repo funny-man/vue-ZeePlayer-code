@@ -115,7 +115,7 @@ export default {
   top: 113px;
   bottom: 0;
   // overflow: hidden;
-  background-color: $color-timeline;
+  background-color:#101622;;
   .loading-ct {
     width: 100%;
     position: absolute;

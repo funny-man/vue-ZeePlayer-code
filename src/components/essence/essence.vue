@@ -135,7 +135,7 @@ export default {
           align-items: center;
           margin: 0 19px 0 19px;
           padding: 20px 0;
-          border-bottom: 1px solid $color-timeline;
+          border-bottom: 1px solid #101622;;
           .list-pic {
             > img {
               display: block;

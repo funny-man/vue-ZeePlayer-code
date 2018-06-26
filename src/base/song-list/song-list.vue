@@ -43,7 +43,7 @@ export default {
       align-items: center;
       margin: 0 19px 0 19px;
       padding: 10px 0;
-      border-bottom: 1px solid $color-timeline;
+      border-bottom: 1px solid #101622;;
       .text {
         flex: 1;
         margin-left: 14px;
