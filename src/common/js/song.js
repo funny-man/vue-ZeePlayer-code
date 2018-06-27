@@ -1,5 +1,6 @@
-// import { getLyric } from 'api/song'
-// import { ERR_OK } from 'api/jsonp-data-config'
+import { getLyric } from 'api/song'
+import { ERR_OK } from 'api/jsonp-data-config'
+import { Base64 } from 'js-base64'
 
 // 通过类的初始化处理song数据保留需要用到的
 export default class Song {
@@ -12,14 +13,28 @@ export default class Song {
     this.duration = duration
     this.image = image
   }
-  // getLyric() {
-  //   getLyric(this.mid).then((res) => {
-  //     if (res.retcode === ERR_OK) {
-  //       this.lyric = res.lyric
-  //       console.log(this.lyric)
-  //     }
-  //   })
-  // }
+  getLyric() {
+    // 这里用Promise的原因就是每次通过Promise吧res.lyric传出去这样player.vue中就可以在then中得到数据在处理数据
+
+    // 判断如果获取过各次数据则只要重新把歌词传到player.vue就好
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
+
+    // 否则直接获取歌词并通过Promise异步传给player.vue
+    return new Promise((resolve, reject) => {
+      getLyric(this.mid).then((res) => {
+        console.log('请求.........歌词')
+        if (res.retcode === ERR_OK) {
+          this.lyric = Base64.decode(res.lyric)
+          resolve(this.lyric)
+        } else {
+          // eslint-disable-next-line
+          reject('no lyric')
+        }
+      })
+    })
+  }
 }
 export function createSong(musicData) {
   return new Song({

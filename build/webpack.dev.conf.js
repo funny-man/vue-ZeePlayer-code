@@ -55,29 +55,28 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           console.log(e)
         })
       })
-
-      // app.get('/api/lyric', function (req, res) {
-      //   let url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
-      //   axios.get(url, {
-      //     headers: {
-      //       referer: 'https://c.y.qq.com/',
-      //       host: 'c.y.qq.com'
-      //     },
-      //     params: req.query
-      //   }).then((response) => {
-      //     var ret = response.data
-      //     if (typeof ret === 'string') {
-      //       var reg = /^\w+\(({[^()]+})\)$/
-      //       var matches = ret.match(reg)
-      //       if (matches) {
-      //         ret = JSON.parse(matches[1])
-      //       }
-      //     }
-      //     res.json(ret)
-      //   }).catch((e) => {
-      //     console.log(e)
-      //   })
-      // })
+      app.get('/api/lyric', function (req, res) {
+        let url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          var ret = response.data
+          if (typeof ret === 'string') {
+            var reg = /^\w+\(({[^()]+})\)$/
+            var matches = ret.match(reg)
+            if (matches) {
+              ret = JSON.parse(matches[1])
+            }
+          }
+          res.json(ret)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
     },
     //  上面是请求代理谁前端的请求在这里接收3；然后想qq音乐发送请求把数据在传给前端
     clientLogLevel: 'warning',

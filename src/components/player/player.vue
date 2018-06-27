@@ -64,7 +64,7 @@
             <div class="btn next" @click="next">
               <i class="vue-music-icon icon-next"></i>
             </div>
-            <div class="btn collection">
+            <div class="btn collection" @click="test">
               <i class="vue-music-icon icon-like-n"></i>
             </div>
           </div>
@@ -110,6 +110,7 @@ import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
+import Lyric from 'lyric-parser'
 
 export default {
   data() {
@@ -119,7 +120,8 @@ export default {
       shouldUpdate: true,
       touch: {},
       updateTimeLock: true,
-      showLoading: true
+      showLoading: true,
+      currentLyric: null
     }
   },
   computed: {
@@ -150,6 +152,10 @@ export default {
     ])
   },
   methods: {
+    test() {
+      console.log('测试')
+      console.log(this.currentSong)
+    },
     progressTouchStart(e) {
       console.log(e)
       let pageX = e.pageX
@@ -359,6 +365,14 @@ export default {
         scale
       }
     },
+    _getLyric() {
+      // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
+      this.currentSong.getLyric().then((lyric) => {
+        this.currentLyric = new Lyric(lyric)
+        console.log('currentLyric')
+        console.log(this.currentLyric)
+      })
+    },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
@@ -372,7 +386,9 @@ export default {
       console.log('改变')
       if (newSong === oldSong) return
       this.$nextTick(() => {
+        console.log('watch')
         this.play()
+        this._getLyric()
       })
     },
     playing(newPlaying) {
