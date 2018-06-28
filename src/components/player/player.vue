@@ -13,25 +13,37 @@
           </div>
           <h3 class="title">PLAYER</h3>
         </div>
-        <div class="middle">
+        <div class="middle" ref="middle">
           <div class="middle-l">
-            <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd" :class="cdRotate" ref="cd">
-                <img class="cd-image" v-lazy="currentSong.image">
+            <div class="cd-ct" ref="cdCt">
+              <div class="cd-wrapper" ref="cdWrapper">
+                <div class="cd" :class="cdRotate" ref="cd">
+                  <img class="cd-image" v-lazy="currentSong.image">
+                </div>
+              </div>
+              <div class="text">
+                <h3 class="song-name" v-html="currentSong.name"></h3>
+                <p class="singer-name" v-html="currentSong.singer"></p>
               </div>
             </div>
-            <div class="text">
-              <h3 class="song-name" v-html="currentSong.name"></h3>
-              <p class="singer-name" v-html="currentSong.singer"></p>
+          </div>
+          <div class="middle-r">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine" class="text" v-for="(line,index) in currentLyric.lines" :key="index">{{ line.txt }}</p>
+              </div>
             </div>
           </div>
-          <div class="middle-r"></div>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+          </div>
           <div class="progressbar-ct">
             <div class="progressbar-wrapper"
                  ref="progressbarWrapper"
-                 @click="progressTouchStart"
+                 @click="progressTouchClick"
             >
               <div class="progressbar">
                 <div class="progressbar-cur"  :class="{smooth:updateTimeLock}" :style="progressBarCur">
@@ -118,10 +130,10 @@ export default {
       totalTime: 0,
       curTime: 0,
       shouldUpdate: true,
-      touch: {},
       updateTimeLock: true,
       showLoading: true,
-      currentLyric: null
+      currentLyric: null,
+      currentShow: 'cd'
     }
   },
   computed: {
@@ -151,12 +163,17 @@ export default {
       'sequenceList'
     ])
   },
+  created() {
+    // 分别用于储存progress和middle部分touch事件的数据
+    this.progressTouch = {}
+    this.middleTouch = {}
+  },
   methods: {
     test() {
       console.log('测试')
-      console.log(this.currentSong)
+      console.log(this.$refs.cdCt.clientHeight)
     },
-    progressTouchStart(e) {
+    progressTouchClick(e) {
       console.log(e)
       let pageX = e.pageX
       let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
@@ -171,13 +188,13 @@ export default {
       this.updateTimeLock = false
     },
     progressBtnTouchMove(e) {
-      this.touch.pageX = e.touches[0].pageX
-      this.touch.progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
-      this.touch.progressbarWidth = this.$refs.progressbarWrapper.clientWidth
-      this.curTime = (this.touch.pageX - this.touch.progressbarMarginLeft) / this.touch.progressbarWidth * this.totalTime
+      this.progressTouch.pageX = e.touches[0].pageX
+      this.progressTouch.progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
+      this.progressTouch.progressbarWidth = this.$refs.progressbarWrapper.clientWidth
+      this.curTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
     },
     progressBtnTouchEnd() {
-      this.$refs.audio.currentTime = (this.touch.pageX - this.touch.progressbarMarginLeft) / this.touch.progressbarWidth * this.totalTime
+      this.$refs.audio.currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
       this.updateTimeLock = true
     },
     togglePanel() {
@@ -348,16 +365,18 @@ export default {
       const vw = window.innerWidth
       const vh = window.innerHeight
 
-      const targetCdWidth = 50
-      const targetCdLeft = 50
-      const targetCdBottom = 19
-      const cdWidth = vw * 0.6
-      const cdTop = targetCdWidth / 60
+      const miniCdWidth = 50 // minicd宽度
+      const miniCdLeft = 50 // minicd中心距离左边距离
+      const miniCdBottom = 37 // minicd中心距离底部距离
+      const cdWidth = vw * 0.6 // cd宽度
+      const cdTop = (this.$refs.middle.clientHeight - this.$refs.cdCt.clientHeight) / 2 + 44 + cdWidth / 2 // cd中心距离顶部距离
+      const cdLeft = vw / 2 // cd中心距离左边距离
 
       // 缩放比例
-      const scale = targetCdWidth / cdWidth
-      const x = -(vw / 2 - targetCdLeft)
-      const y = vh - cdTop - targetCdBottom
+      const scale = miniCdWidth / cdWidth
+      // x和y轴的移动距离
+      const x = -(cdLeft - miniCdLeft)
+      const y = vh - cdTop - miniCdBottom
 
       return {
         x,
@@ -435,50 +454,84 @@ export default {
       }
     }
     .middle {
-      margin-top: 60px;
+      position: fixed;
+      top: 44px;
+      bottom: 140px;
+      width: 100%;
       text-align: center;
+      white-space: nowrap;
+      font-size: 0;
       .middle-l {
-        .cd-wrapper {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        vertical-align: top;
+        &.middle-l:before {
+          content: "";
           display: inline-block;
-          .cd {
+          width: 0;
+          height: 100%;
+          vertical-align: middle;
+          background-color: red;
+        }
+        .cd-ct {
+          display: inline-block;
+          vertical-align: middle;
+          .cd-wrapper {
+            position: relative;
             display: inline-block;
             width: 60vw;
             height: 60vw;
-            border-radius: 50%;
-            &.play {
-              animation: rotate 20s linear infinite;
-            }
-            &.pause {
-              animation-play-state: paused;
-            }
-            .cd-image {
-              display: block;
-              width: 100%;
+            .cd {
+              display: inline-block;
               border-radius: 50%;
-              box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
+              width: 100%;
+              height: 100%;
+              &.play {
+                animation: rotate 20s linear infinite;
+              }
+              &.pause {
+                animation-play-state: paused;
+              }
+              .cd-image {
+                display: block;
+                width: 100%;
+                border-radius: 50%;
+                box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
+              }
+            }
+          }
+          .text {
+            margin: 0 auto;
+            width: 90vw;
+            .song-name {
+              color: $color-text-l;
+              font-size: $font-size-l;
+              margin-top: 20px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .singer-name {
+              color: $color-text-s;
+              font-size: $font-size-s-x;
+              margin-top: 14px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
           }
         }
-        .text {
-          margin: 0 auto;
-          width: 90vw;
-          .song-name {
-            color: $color-text-l;
-            font-size: $font-size-l;
-            margin-top: 20px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-          .singer-name {
-            color: $color-text-s;
-            font-size: $font-size-s-x;
-            margin-top: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-        }
+      }
+      .middle-r {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        vertical-align: top;
+        transform: translate3d(-375px, 0, 0);
+        overflow: hidden;
+        font-size: 12px;
+        opacity: 0.5;
       }
     }
     .bottom {
@@ -486,7 +539,24 @@ export default {
       left: 0;
       right: 0;
       width: 100%;
-      bottom: 30px;
+      bottom: 10px;
+      .dot-wrapper {
+        display: block;
+        text-align: center;
+        font-size: 0;
+        margin-bottom: 4px;
+        .dot {
+          display: inline-block;
+          width: 4px;
+          height: 4px;
+          margin: 0 6px;
+          background-color: $color-theme-text-s;
+          border-radius: 50%;
+          &.active {
+            background-color: $color-theme-text-l;
+          }
+        }
+      }
       .progressbar-ct {
         display: inline-block;
         width: 100%;
@@ -567,7 +637,7 @@ export default {
         }
       }
       .btns {
-        margin-top: 45px;
+        margin-top: 20px;
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -629,6 +699,7 @@ export default {
         display: inline-block;
         width: 50px;
         border-radius: 50%;
+        background-color: pink;
         &.play {
           animation: rotate 20s linear infinite;
         }
