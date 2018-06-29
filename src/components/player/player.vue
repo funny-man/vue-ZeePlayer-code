@@ -13,8 +13,13 @@
           </div>
           <h3 class="title">PLAYER</h3>
         </div>
-        <div class="middle" ref="middle">
-          <div class="middle-l">
+        <div class="middle"
+             ref="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd"
+        >
+          <div class="middle-l" ref="middleL">
             <div class="cd-ct" ref="cdCt">
               <div class="cd-wrapper" ref="cdWrapper">
                 <div class="cd" :class="cdRotate" ref="cd">
@@ -27,13 +32,17 @@
               </div>
             </div>
           </div>
-          <div class="middle-r">
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
-                <p ref="lyricLine" class="text" v-for="(line,index) in currentLyric.lines" :key="index">{{ line.txt }}</p>
+                <p class="text"
+                   ref="lyricLine"
+                   :class="{'current': currentLineNum ===index}"
+                   v-for="(line,index) in currentLyric.lines"
+                   :key="index">{{ line.txt }}</p>
               </div>
             </div>
-          </div>
+          </scroll>
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
@@ -43,7 +52,7 @@
           <div class="progressbar-ct">
             <div class="progressbar-wrapper"
                  ref="progressbarWrapper"
-                 @click="progressTouchClick"
+                 @click="progressClick"
             >
               <div class="progressbar">
                 <div class="progressbar-cur"  :class="{smooth:updateTimeLock}" :style="progressBarCur">
@@ -123,6 +132,11 @@ import animations from 'create-keyframe-animation'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
+import Scroll from 'base/scroll/scroll'
+import { prefixStyle } from 'common/js/dom'
+
+const transform = prefixStyle('transform')
+const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
   data() {
@@ -133,7 +147,8 @@ export default {
       updateTimeLock: true,
       showLoading: true,
       currentLyric: null,
-      currentShow: 'cd'
+      currentShow: 'cd',
+      currentLineNum: 12
     }
   },
   computed: {
@@ -173,7 +188,67 @@ export default {
       console.log('测试')
       console.log(this.$refs.cdCt.clientHeight)
     },
-    progressTouchClick(e) {
+    middleTouchStart(e) {
+      this.middleTouch.initiated = true
+      this.middleTouch.moved = false
+      let touch = e.touches[0]
+      this.middleTouch.StartX = touch.pageX
+      this.middleTouch.StartY = touch.pageY
+    },
+    middleTouchMove(e) {
+      if (!this.middleTouch.initiated) {
+        return
+      }
+      let touch = e.touches[0]
+      let variableX = touch.pageX - this.middleTouch.StartX
+      let variableY = touch.pageY - this.middleTouch.StartY
+      if (Math.abs(variableX) < Math.abs(variableY)) return
+      if (!this.middleTouch.moved) {
+        this.middleTouch.moved = true
+      }
+      const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+      const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + variableX))
+      this.middleTouch.percent = Math.abs(offsetWidth / window.innerWidth)
+
+      this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+      this.$refs.lyricList.$el.style[transitionDuration] = 0
+      this.$refs.middleL.style.opacity = 1 - this.middleTouch.percent
+      this.$refs.middleL.style[transitionDuration] = 0
+    },
+    middleTouchEnd() {
+      if (!this.middleTouch.moved) {
+        return
+      }
+      let offsetWidth
+      let opacity
+      let time = 300
+      if (this.currentShow === 'cd') {
+        if (this.middleTouch.percent > 0.1) {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+          this.currentShow = 'lyric'
+        } else {
+          offsetWidth = 0
+          opacity = 1
+        }
+      } else {
+        if (this.middleTouch.percent < 0.9) {
+          offsetWidth = 0
+          opacity = 1
+          this.currentShow = 'cd'
+        } else {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+        }
+      }
+      this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+      this.$refs.middleL.style[transitionDuration] = `${time}ms`
+      this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+      this.$refs.middleL.style.opacity = opacity
+
+      this.middleTouch.initiated = false
+    },
+    progressClick(e) {
       console.log(e)
       let pageX = e.pageX
       let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
@@ -387,6 +462,7 @@ export default {
     _getLyric() {
       // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
       this.currentSong.getLyric().then((lyric) => {
+        console.log(this.currentLyric)
         this.currentLyric = new Lyric(lyric)
         console.log('currentLyric')
         console.log(this.currentLyric)
@@ -399,6 +475,9 @@ export default {
       setPlayMode: 'SET_PLAY_MODE',
       setPlayList: 'SET_PLAYLIST'
     })
+  },
+  components: {
+    Scroll
   },
   watch: {
     currentSong(newSong, oldSong) {
@@ -456,11 +535,10 @@ export default {
     .middle {
       position: fixed;
       top: 44px;
-      bottom: 140px;
+      bottom: 150px;
       width: 100%;
       text-align: center;
       white-space: nowrap;
-      font-size: 0;
       .middle-l {
         display: inline-block;
         width: 100%;
@@ -472,7 +550,6 @@ export default {
           width: 0;
           height: 100%;
           vertical-align: middle;
-          background-color: red;
         }
         .cd-ct {
           display: inline-block;
@@ -524,14 +601,43 @@ export default {
         }
       }
       .middle-r {
+        position: relative;
         display: inline-block;
         width: 100%;
         height: 100%;
         vertical-align: top;
-        transform: translate3d(-375px, 0, 0);
         overflow: hidden;
-        font-size: 12px;
-        opacity: 0.5;
+        .lyric-wrapper {
+          .text {
+            font-size: $font-size-s-x;
+            color: $color-text-s;
+            line-height: 2;
+            &.current {
+              font-size: $font-size-m;
+              color: $color-text-l;
+            }
+          }
+        }
+      }
+      .middle-r ::before {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100px;
+        background-color: pink;
+      }
+      .middle-r ::after {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100px;
+        background-color: pink;
       }
     }
     .bottom {
