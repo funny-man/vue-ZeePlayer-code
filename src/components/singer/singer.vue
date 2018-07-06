@@ -1,6 +1,6 @@
 <template>
-  <div id="singer">
-    <list-view :data="singerData" @select="selectSinger"></list-view>
+  <div id="singer" ref="singer">
+    <list-view :data="singerData" @select="selectSinger" ref="list"></list-view>
     <transition name="slide-fade">
       <router-view></router-view>
     </transition>
@@ -13,11 +13,13 @@ import { getSinger } from 'api/singer'
 import Singer from 'common/js/singer'
 import { ERR_OK } from 'api/jsonp-data-config'
 import { mapMutations } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
 
 export default {
+  mixins: [playlistMixin],
   data: function () {
     return {
       singerData: []
@@ -27,6 +29,11 @@ export default {
     this._getSinger()
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      this.$refs.singer.style.bottom = bottom
+      this.$refs.list.refresh()
+    },
     selectSinger(singer) {
       //  this.$router是router的编程式的跳转接口
       //  前面tab的跳转用的是<router-link tag="div" class="tab-item" to="/essence">
@@ -115,7 +122,7 @@ export default {
   top: 113px;
   bottom: 0;
   // overflow: hidden;
-  background-color:#101622;;
+  // background-color: #101622;
   .loading-ct {
     width: 100%;
     position: absolute;

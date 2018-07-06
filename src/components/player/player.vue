@@ -36,10 +36,10 @@
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
                 <p class="text"
-                   ref="lyricLine"
-                   :class="{'current': currentLineNum ===index}"
-                   v-for="(line,index) in currentLyric.lines"
-                   :key="index">{{ line.txt }}</p>
+                ref="lyricLine"
+                :class="{'current': currentLineNum ===index}"
+                v-for="(line,index) in currentLyric.lines"
+                :key="index">{{ line.txt }}</p>
               </div>
             </div>
           </scroll>
@@ -148,7 +148,8 @@ export default {
       showLoading: true,
       currentLyric: null,
       currentShow: 'cd',
-      currentLineNum: 12
+      currentLineNum: 0,
+      playingLyric: ''
     }
   },
   computed: {
@@ -256,8 +257,10 @@ export default {
       // 通过百分比和歌曲总长度计算要定位的时长
       // 这里其实可以不设置this.curTime的值也会触发@timeupdate事件修改
       // 但是出发时间有时间差导致点击后等一下进度条才会变化没有跟随
-      this.curTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
-      this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      let currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      this.curTime = currentTime
+      this.$refs.audio.currentTime = currentTime
+      this.currentLyric.seek(currentTime * 1000)
     },
     progressBtnTouchStart(e) {
       this.updateTimeLock = false
@@ -266,10 +269,16 @@ export default {
       this.progressTouch.pageX = e.touches[0].pageX
       this.progressTouch.progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
       this.progressTouch.progressbarWidth = this.$refs.progressbarWrapper.clientWidth
-      this.curTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      let moveWidth = this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft
+      if (moveWidth > this.progressTouch.progressbarWidth) {
+        moveWidth = this.progressTouch.progressbarWidth
+      }
+      this.curTime = moveWidth / this.progressTouch.progressbarWidth * this.totalTime
     },
     progressBtnTouchEnd() {
-      this.$refs.audio.currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      let currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      this.$refs.audio.currentTime = currentTime
+      this.currentLyric.seek(currentTime * 1000)
       this.updateTimeLock = true
     },
     togglePanel() {
@@ -277,6 +286,9 @@ export default {
     },
     togglePlaying() {
       this.setPlayingState(!this.playing)
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay()
+      }
     },
     play() {
       this.$refs.audio.play()
@@ -290,24 +302,35 @@ export default {
       console.log('next')
       console.log(this.mode)
       this.resetData()
-      let index = this.currentIndex + 1
-      if (index === this.playlist.length) {
-        index = 0
+      if (this.playlist.length === 1) {
+        this.loop()
+      } else {
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
       }
-      this.setCurrentIndex(index)
     },
     prev() {
       console.log('prev')
       this.resetData()
-      let index = this.currentIndex - 1
-      if (index === -1) {
-        index = this.playlist.length - 1
+      if (this.playlist.length === 1) {
+        this.loop()
+      } else {
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setCurrentIndex(index)
       }
-      this.setCurrentIndex(index)
     },
     loop() {
       this.$refs.audio.currentTime = 0
       this.$refs.audio.play()
+      if (this.currentLyric) {
+        this.currentLyric.seek(0)
+      }
     },
     changeMode() {
       console.log('changeMode')
@@ -335,6 +358,9 @@ export default {
       setTimeout(() => {
         if (this.updateTimeLock) {
           this.curTime = e.target.currentTime
+          // if (this.currentLyric) {
+          //   this.currentLyric.seek(this.curTime * 1000)
+          // }
         }
         this.shouldUpdate = true
       }, 1000)
@@ -463,10 +489,27 @@ export default {
       // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
       this.currentSong.getLyric().then((lyric) => {
         console.log(this.currentLyric)
-        this.currentLyric = new Lyric(lyric)
+        this.currentLyric = new Lyric(lyric, this.handleLyric)
+        if (this.playing) {
+          this.currentLyric.play()
+        }
         console.log('currentLyric')
         console.log(this.currentLyric)
+      }).catch(() => {
+        this.currentLyric = null
+        this.playingLyric = ''
+        this.currentLineNum = 0
       })
+    },
+    handleLyric({ lineNum, txt }) {
+      this.currentLineNum = lineNum
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 8]
+        this.$refs.lyricList.scrollToElement(lineEl, 1000)
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000)
+      }
+      this.playingLyric = txt
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
@@ -482,6 +525,12 @@ export default {
   watch: {
     currentSong(newSong, oldSong) {
       console.log('改变')
+      if (this.currentLyric) {
+        this.currentLyric.stop()
+        this.currentTime = 0
+        this.playingLyric = ''
+        this.currentLineNum = 0
+      }
       if (newSong === oldSong) return
       this.$nextTick(() => {
         console.log('watch')
@@ -539,12 +588,43 @@ export default {
       width: 100%;
       text-align: center;
       white-space: nowrap;
+      font-size: 0;
+      &.middle::before {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: 60px;
+        background-image: linear-gradient(
+          to top,
+          rgba(24, 29, 40, 0),
+          $color-bg
+        );
+      }
+      &.middle::after {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: 60px;
+        background-image: linear-gradient(
+          to bottom,
+          rgba(24, 29, 40, 0),
+          $color-bg
+        );
+      }
       .middle-l {
         display: inline-block;
         width: 100%;
         height: 100%;
         vertical-align: top;
-        &.middle-l:before {
+        &.middle-l::before {
           content: "";
           display: inline-block;
           width: 0;
@@ -608,6 +688,7 @@ export default {
         vertical-align: top;
         overflow: hidden;
         .lyric-wrapper {
+          padding: 100px 0;
           .text {
             font-size: $font-size-s-x;
             color: $color-text-s;
@@ -618,26 +699,6 @@ export default {
             }
           }
         }
-      }
-      .middle-r ::before {
-        content: "";
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100px;
-        background-color: pink;
-      }
-      .middle-r ::after {
-        content: "";
-        display: inline-block;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 100px;
-        background-color: pink;
       }
     }
     .bottom {

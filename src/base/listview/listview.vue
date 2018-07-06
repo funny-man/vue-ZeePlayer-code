@@ -73,6 +73,9 @@ export default {
     }
   },
   methods: {
+    refresh() {
+      this.$refs.listview.refresh()
+    },
     selectItem(item) {
       this.$emit('select', item)
     },
@@ -175,7 +178,7 @@ export default {
   > ul {
     // padding-bottom: 76px;
     .list-group-title {
-      background-color: #1c2230;;
+      background-color: #1c2230;
       font-size: $font-size-s-x;
       color: $color-theme-1;
       line-height: 3;
