@@ -93,7 +93,7 @@ export default {
       this.$refs.list.refresh()
     },
     goBack() {
-      this.$router.push(`/singer`)
+      this.$router.back()
     },
     scroll(pos) {
       this.scrollY = pos.y

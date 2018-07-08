@@ -5,8 +5,9 @@ import Essence from 'components/essence/essence'
 import Singer from 'components/singer/singer'
 import Ranking from 'components/ranking/ranking'
 import Search from 'components/search/search'
-
+// 二级路由界面
 import SingerDetail from 'components/singer-detail/singer-detail'
+import Disc from 'components/disc/disc'
 
 Vue.use(Router)
 
@@ -20,7 +21,13 @@ export default new Router({
     {
       path: '/essence',
       name: 'Essence',
-      component: Essence
+      component: Essence,
+      children: [
+        {
+          path: ':id',
+          component: Disc
+        }
+      ]
     },
     {
       path: '/singer',
