@@ -4,7 +4,7 @@
 
 <script type="text/ecmascript-6">
 import { mapGetters } from 'vuex'
-import { getSongList } from 'api/essence'
+import { getTopMusicList } from 'api/ranking'
 import { getSongKey } from 'api/song-key'
 import { ERR_OK } from 'api/jsonp-data-config'
 import { createSong } from 'common/js/song'
@@ -18,35 +18,35 @@ export default {
   },
   computed: {
     title() {
-      return this.disc.dissname
+      return this.topList.topTitle
     },
     bgImage() {
-      return this.disc.imgurl
+      if (this.songs.length) {
+        return this.songs[0].image
+      }
+      return ''
     },
     ...mapGetters([
-      'disc'
+      'topList'
     ])
   },
   created() {
-    this._getSongList()
+    this._getTopMusicList()
   },
   methods: {
-    _getSongList() {
-      if (!this.disc.dissid) {
-        this.$router.push(`/essence`)
+    _getTopMusicList() {
+      if (!this.topList.id) {
+        this.$router.push(`/ranking`)
         return
       }
-      getSongList(this.disc.dissid).then(res => {
+      getTopMusicList(this.topList.id).then(res => {
         if (res.code === ERR_OK) {
-          console.log('getDiscSong')
-          console.log(res)
-          this.songs = this._normalizeSong(res.cdlist[0].songlist)
+          console.log(res.songlist)
+          this.songs = this._normalizeSong(res.songlist)
           // 前面的songs可以渲染出歌手歌单列表然后后台执行获取歌单每首歌的key
           this.songs.forEach((item) => {
             this._getSongKey(item.mid)
           })
-          console.log('newSong')
-          console.log(this.songs)
         }
       })
     },
@@ -63,9 +63,8 @@ export default {
     },
     _normalizeSong(list) {
       let ret = []
-      list.forEach((musicData) => {
-        // es6的解构赋值
-        // let { musicData } = item
+      list.forEach((item) => {
+        const musicData = item.data
         if (musicData.songid && musicData.albummid) {
           ret.push(createSong(musicData))
         }

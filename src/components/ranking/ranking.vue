@@ -1,9 +1,9 @@
 <template>
-  <div id="ranking">
-    <scroll class="ranking-ct" :data="topList">
+  <div id="ranking" ref="ranking">
+    <scroll class="ranking-ct" :data="topList" ref="rankingCt">
       <div class="top-list">
           <ul>
-            <li class="item" v-for="(item) in topList" :key="item.id">
+            <li class="item" v-for="(item) in topList" :key="item.id" @click="selectItem(item)">
               <div class="ranking-pic">
                 <img v-lazy="item.picUrl">
               </div>
@@ -23,9 +23,9 @@
         <loading></loading>
       </div> -->
     </scroll>
-    <!-- <transition name="slide-fade">
+    <transition name="slide-fade">
       <router-view></router-view>
-    </transition> -->
+    </transition>
   </div>
 </template>
 
@@ -33,7 +33,11 @@
 import Scroll from 'base/scroll/scroll'
 import { getTopList } from 'api/ranking'
 import { ERR_OK } from 'api/jsonp-data-config'
+import { playlistMixin } from 'common/js/mixin'
+import { mapMutations } from 'vuex'
+
 export default {
+  mixins: [playlistMixin],
   data() {
     return {
       topList: []
@@ -43,6 +47,18 @@ export default {
     this._getTopList()
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      this.$refs.ranking.style.bottom = bottom
+      this.$refs.rankingCt.refresh()
+    },
+    selectItem(item) {
+      console.log(item)
+      this.$router.push({
+        path: `/ranking/${item.id}`
+      })
+      this.setTopList(item)
+    },
     _getTopList() {
       getTopList().then(res => {
         if (res.code === ERR_OK) {
@@ -50,7 +66,10 @@ export default {
           console.log(this.topList)
         }
       })
-    }
+    },
+    ...mapMutations({
+      setTopList: 'SET_TOP_LIST'
+    })
   },
   components: {
     Scroll
@@ -65,7 +84,7 @@ export default {
   position: fixed;
   top: 113px;
   bottom: 0;
-  overflow: hidden;
+  // overflow: hidden;
   .ranking-ct {
     width: 100%;
     height: 100%;

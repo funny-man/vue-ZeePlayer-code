@@ -130,7 +130,6 @@ export default {
   position: fixed;
   top: 113px;
   bottom: 0;
-  overflow: hidden;
   .essence-ct {
     width: 100%;
     height: 100%;
