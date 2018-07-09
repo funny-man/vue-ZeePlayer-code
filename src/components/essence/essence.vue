@@ -107,8 +107,6 @@ export default {
       }
     },
     ...mapMutations({
-      // 将 `this.setSinger()` 映射为 `this.$store.commit('SET_SINGER')`
-      // vuex提供的语法糖可以吧commit的方法使用组件内部的方法调用
       setDisc: 'SET_DISC'
     })
     // ,

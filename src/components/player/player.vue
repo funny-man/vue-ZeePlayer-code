@@ -665,6 +665,7 @@ export default {
               color: $color-text-l;
               font-size: $font-size-l;
               margin-top: 20px;
+              padding: 1px;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -672,7 +673,8 @@ export default {
             .singer-name {
               color: $color-text-s;
               font-size: $font-size-s-x;
-              margin-top: 14px;
+              margin-top: 10px;
+              padding: 1px;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;

@@ -1,5 +1,5 @@
 <template>
-  <music-list :title="title" :bg-image="bgImage" :songs="songs"></music-list>
+  <music-list class="aa" :title="title" :bg-image="bgImage" :songs="songs"></music-list>
 </template>
 
 <script type="text/ecmascript-6">
