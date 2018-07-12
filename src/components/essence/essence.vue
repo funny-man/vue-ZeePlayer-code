@@ -171,6 +171,7 @@ export default {
               h3 {
                 color: $color-text-l;
                 font-size: $font-size-m;
+                padding: 1px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -178,7 +179,8 @@ export default {
               p {
                 color: $color-text-s;
                 font-size: $font-size-s;
-                margin-top: 11px;
+                margin-top: 10px;
+                padding: 1px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 overflow: hidden;

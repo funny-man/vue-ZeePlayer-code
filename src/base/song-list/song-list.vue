@@ -2,6 +2,7 @@
   <div class="song-list">
     <ul>
       <li v-for="(song,index) in songs" :key="index" class="item" @click="selectItem(song,index)">
+        <div class="ranking" v-show="ranking">{{ index+1 }}</div>
         <div class="text">
           <div class="text-ct">
             <h3 class="name">{{ song.name }}</h3>
@@ -21,6 +22,10 @@ export default {
     songs: {
       type: Array,
       default: () => { }
+    },
+    ranking: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
@@ -43,7 +48,13 @@ export default {
       align-items: center;
       margin: 0 19px 0 19px;
       padding: 10px 0;
-      border-bottom: 1px solid #101622;;
+      border-bottom: 1px solid #101622;
+      .ranking {
+        display: inline-block;
+        padding: 1px;
+        min-width: 28px;
+        color: $color-text-s;
+      }
       .text {
         flex: 1;
         margin-left: 14px;
@@ -53,6 +64,7 @@ export default {
           h3 {
             color: $color-text-l;
             font-size: $font-size-m;
+            padding: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -60,7 +72,8 @@ export default {
           p {
             color: $color-text-s;
             font-size: $font-size-s;
-            margin-top: 11px;
+            margin-top: 10px;
+            padding: 1px;
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
@@ -74,6 +87,15 @@ export default {
           font-size: 20px;
         }
       }
+    }
+    li:nth-child(1) .ranking {
+      color: $color-theme-1;
+    }
+    li:nth-child(2) .ranking {
+      color: #d6e9fc;
+    }
+    li:nth-child(3) .ranking {
+      color: #cc9557;
     }
   }
 }

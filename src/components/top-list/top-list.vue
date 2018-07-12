@@ -1,5 +1,5 @@
 <template>
-  <music-list :title="title" :bg-image="bgImage" :songs="songs"></music-list>
+  <music-list  :ranking="ranking" :title="title" :bg-image="bgImage" :songs="songs"></music-list>
 </template>
 
 <script type="text/ecmascript-6">
@@ -13,7 +13,8 @@ import MusicList from 'components/music-list/music-list'
 export default {
   data() {
     return {
-      songs: []
+      songs: [],
+      ranking: true
     }
   },
   computed: {

@@ -26,7 +26,7 @@
       @scroll="scroll"
     >
       <div class="song-list-wrapper">
-        <song-list :songs="songs" @seletc="selectItem"></song-list>
+        <song-list :songs="songs" :ranking="ranking" @seletc="selectItem"></song-list>
       </div>
       <div class="loading-ct"  v-show="!songs.length">
         <loading></loading>
@@ -60,6 +60,10 @@ export default {
     title: {
       type: String,
       default: ''
+    },
+    ranking: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
