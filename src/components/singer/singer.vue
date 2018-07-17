@@ -31,7 +31,8 @@ export default {
   methods: {
     handlePlaylist(playlist) {
       const bottom = playlist.length > 0 ? '74px' : ''
-      this.$refs.singer.style.bottom = bottom
+      // 通过子组件的$refs选择子组件的绑定了ref属性元素
+      this.$refs.list.$refs.listct.style.paddingBottom = bottom
       this.$refs.list.refresh()
     },
     selectSinger(singer) {
@@ -116,6 +117,11 @@ export default {
 
 <style scoped lang="scss">
 @import "~common/sass/variable.scss";
+#test {
+  width: 100px;
+  height: 100px;
+  background-color: pink;
+}
 #singer {
   position: fixed;
   width: 100%;

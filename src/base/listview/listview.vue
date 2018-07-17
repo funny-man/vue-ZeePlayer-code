@@ -6,7 +6,7 @@
           :probeType="probeType"
           @scroll="scroll"
   >
-    <ul>
+    <ul ref="listct">
       <li v-for="(group,index) in data" :key="index" ref="listgroup">
         <h4 class="list-group-title">{{ group.title }}</h4>
         <ul>

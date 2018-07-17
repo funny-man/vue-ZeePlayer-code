@@ -38,15 +38,11 @@ export default {
       }
       getSingerDetail(this.singer.id).then(res => {
         if (res.code === ERR_OK) {
-          console.log('getSong')
-          console.log(res.data)
           this.songs = this._normalizeSong(res.data.list)
           // 前面的songs可以渲染出歌手歌单列表然后后台执行获取歌单每首歌的key
           this.songs.forEach((item) => {
             this._getSongKey(item.mid)
           })
-          console.log('newSong')
-          console.log(this.songs)
         }
       })
     },

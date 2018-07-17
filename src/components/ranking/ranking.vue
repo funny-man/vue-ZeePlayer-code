@@ -19,9 +19,9 @@
             </li>
           </ul>
       </div>
-      <!-- <div class="loading-ct"  v-show="!hotList.length">
+      <div class="loading-ct"  v-show="!topList.length">
         <loading></loading>
-      </div> -->
+      </div>
     </scroll>
     <transition name="slide-fade">
       <router-view></router-view>
@@ -35,7 +35,7 @@ import { getTopList } from 'api/ranking'
 import { ERR_OK } from 'api/jsonp-data-config'
 import { playlistMixin } from 'common/js/mixin'
 import { mapMutations } from 'vuex'
-
+import Loading from 'base/loading/loading'
 export default {
   mixins: [playlistMixin],
   data() {
@@ -72,7 +72,8 @@ export default {
     })
   },
   components: {
-    Scroll
+    Scroll,
+    Loading
   }
 }
 </script>
