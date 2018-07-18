@@ -24,6 +24,10 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
+    },
+    pullup: {
+      type: Boolean,
+      default: false
     }
   },
   mounted() {
@@ -49,6 +53,14 @@ export default {
         this.scroll.on('scroll', (pos) => {
           //  在监听 this.scroll的scroll在拍派发个自定义事件scroll同时传入pos参数让别的地方监听
           me.$emit('scroll', pos)
+        })
+      }
+      if (this.pullup) {
+        let me = this
+        this.scroll.on('scrollEnd', () => {
+          if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+            me.$emit('scrollToEnd')
+          }
         })
       }
     },

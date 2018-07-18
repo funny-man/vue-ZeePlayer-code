@@ -198,6 +198,7 @@ export default {
     }
     .loading-ct {
       width: 100%;
+      height: 20px;
       position: absolute;
       top: 50%;
       transform: translate(0, -50%);
