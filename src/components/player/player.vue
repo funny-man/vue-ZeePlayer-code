@@ -555,6 +555,7 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
+    z-index: 1000;
     background-color: $color-bg;
     .header {
       position: fixed;
@@ -856,6 +857,7 @@ export default {
     right: 5px;
     bottom: 5px;
     left: 5px;
+    z-index: 1000;
     height: 64px;
     border-radius: 5px;
     // background-color: $color-bg;

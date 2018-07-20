@@ -63,7 +63,7 @@ export default {
       }
       list.forEach((item, index) => {
         if (index < HOT_SINGER_LEN) {
-          map.hot.items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
+          map.hot.items.push(new Singer({ name: item.Fsinger_name, id: item.Fsinger_mid }))
         }
         const key = item.Findex
         if (!map[key]) {
@@ -72,7 +72,7 @@ export default {
             items: []
           }
         }
-        map[key].items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
+        map[key].items.push(new Singer({ name: item.Fsinger_name, id: item.Fsinger_mid }))
       })
       //  处理map把数据分组
       let hot = []

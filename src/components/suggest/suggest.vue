@@ -1,7 +1,7 @@
 <template>
-  <scroll class="suggest" :data="result" :pullup="pullup" @scrollToEnd="searchMore">
+  <scroll class="suggest" :data="result" :pullup="pullup" @scrollToEnd="searchMore" ref="suggest">
     <ul class="suggest-list">
-      <li class="suggest-item" v-for="(item,index) in result" :key="index" @click="selectItem(item,index)">
+      <li class="suggest-item" v-for="(item,index) in result" :key="index" @click="selectItem(item)">
         <div class="icon">
           <i class="vue-music-icon" :class="getIconCls(item)"></i>
         </div>
@@ -22,6 +22,8 @@ import { createSong } from 'common/js/song'
 import { getSongKey } from 'api/song-key'
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
+import Singer from 'common/js/singer'
+import { mapMutations, mapActions } from 'vuex'
 
 const perpage = 20
 
@@ -45,8 +47,17 @@ export default {
     }
   },
   methods: {
-    selectItem(item, index) {
-      this.$emit('seletc', item, index, this.result)
+    selectItem(item) {
+      if (item.type === 'singer') {
+        const singer = new Singer({ name: item.singername, id: item.singermid })
+        console.log(singer)
+        this.$router.push({
+          path: `/search/${singer.id}`
+        })
+        this.setSinger(singer)
+      } else {
+        this.insertSong(item)
+      }
     },
     getIconCls(item) {
       if (item.type === 'singer') {
@@ -63,7 +74,9 @@ export default {
       }
     },
     _search() {
+      this.page = 1
       this.hasMore = true
+      this.$refs.suggest.scrollTo(0, 0)
       search(this.keyWord, this.page, this.showSinger, perpage).then(res => {
         if (res.code === ERR_OK) {
           this.result = this._genResult(res.data)
@@ -127,7 +140,13 @@ export default {
         }
       })
       return ret
-    }
+    },
+    ...mapMutations({
+      setSinger: 'SET_SINGER'
+    }),
+    ...mapActions([
+      'insertSong'
+    ])
   },
   watch: {
     keyWord() {

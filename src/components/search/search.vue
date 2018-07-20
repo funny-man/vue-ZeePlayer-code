@@ -1,7 +1,7 @@
 <template>
   <div class="search">
     <div class="search-box-wrapper">
-      <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="nos"></search-box>
+      <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="query"></search-box>
     </div>
     <div class="shortcut-wrapper" v-show="!keyWord">
       <div class="shortcut">
@@ -14,8 +14,11 @@
       </div>
     </div>
     <div class="search-result" v-show="keyWord">
-      <Suggest :keyWord="keyWord" @seletc="selectItem"></Suggest>
+      <Suggest :keyWord="keyWord"></Suggest>
     </div>
+    <transition name="slide-fade">
+      <router-view></router-view>
+    </transition>
   </div>
 </template>
 
@@ -24,7 +27,6 @@ import SearchBox from 'base/search-box/search-box'
 import Suggest from 'components/suggest/suggest'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/jsonp-data-config'
-import { mapActions } from 'vuex'
 export default {
   data() {
     return {
@@ -37,15 +39,9 @@ export default {
     this._getHotKey()
   },
   methods: {
-    nos(a) {
-      console.log(a)
-      this.keyWord = a
-    },
-    selectItem(item, index, songs) {
-      this.selectPlay({
-        list: songs,
-        index
-      })
+    query(k) {
+      console.log(k)
+      this.keyWord = k
     },
     _getHotKey() {
       getHotKey().then(res => {
@@ -56,10 +52,7 @@ export default {
     },
     addKeyWord(key) {
       this.$refs.searchBox.setKeyWord(key)
-    },
-    ...mapActions([
-      'selectPlay'
-    ])
+    }
   },
   components: {
     SearchBox,
@@ -100,5 +93,14 @@ export default {
       }
     }
   }
+}
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.5s ease;
+}
+.slide-fade-enter, .slide-fade-leave-to /* .slide-fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  // transform: translate3d(100%,0,0)
+  transform: scale(0);
 }
 </style>
