@@ -1,5 +1,11 @@
 <template>
-  <scroll class="suggest" :data="result" :pullup="pullup" @scrollToEnd="searchMore" ref="suggest">
+  <scroll class="suggest"
+          :data="result"
+          :pullup="pullup"
+          :beforeScroll="beforeScroll"
+          @scrollToEnd="searchMore"
+          @beforeScroll="listScroll"
+          ref="suggest">
     <ul class="suggest-list">
       <li class="suggest-item" v-for="(item,index) in result" :key="index" @click="selectItem(item)">
         <div class="icon">
@@ -13,6 +19,9 @@
         <loading></loading>
       </div>
     </ul>
+    <div class="no-result-wrapper" v-show="!hasMore&&!result.length">
+      <no-result title="暂无搜索结果"></no-result>
+    </div>
   </scroll>
 </template>
 <script type="text/ecmascript-6">
@@ -22,6 +31,7 @@ import { createSong } from 'common/js/song'
 import { getSongKey } from 'api/song-key'
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
+import NoResult from 'base/no-result/no-result'
 import Singer from 'common/js/singer'
 import { mapMutations, mapActions } from 'vuex'
 
@@ -43,7 +53,8 @@ export default {
       page: 1,
       result: [],
       pullup: true,
-      hasMore: true
+      hasMore: true,
+      beforeScroll: true
     }
   },
   methods: {
@@ -58,6 +69,27 @@ export default {
       } else {
         this.insertSong(item)
       }
+      this.$emit('select')
+    },
+    searchMore() {
+      if (!this.hasMore) {
+        return
+      }
+      this.page++
+      search(this.keyWord, this.page, this.showSinger, perpage).then(res => {
+        if (res.code === ERR_OK) {
+          let a = this._genResult(res.data)
+          a.forEach((item) => {
+            this._getSongKey(item.mid)
+          })
+          this.result = this.result.concat(a)
+          console.log(this.result)
+          this._checkMore(res.data)
+        }
+      })
+    },
+    listScroll() {
+      this.$emit('listScroll')
     },
     getIconCls(item) {
       if (item.type === 'singer') {
@@ -84,23 +116,6 @@ export default {
             this._getSongKey(item.mid)
           })
           console.log(res.data)
-          this._checkMore(res.data)
-        }
-      })
-    },
-    searchMore() {
-      if (!this.hasMore) {
-        return
-      }
-      this.page++
-      search(this.keyWord, this.page, this.showSinger, perpage).then(res => {
-        if (res.code === ERR_OK) {
-          let a = this._genResult(res.data)
-          a.forEach((item) => {
-            this._getSongKey(item.mid)
-          })
-          this.result = this.result.concat(a)
-          console.log(this.result)
           this._checkMore(res.data)
         }
       })
@@ -155,7 +170,8 @@ export default {
   },
   components: {
     Scroll,
-    Loading
+    Loading,
+    NoResult
   }
 }
 </script>
@@ -163,7 +179,7 @@ export default {
 @import "~common/sass/variable";
 .suggest {
   position: fixed;
-  top: 180px;
+  top: 164px;
   bottom: 0;
   width: 100%;
   overflow: hidden;
@@ -200,6 +216,12 @@ export default {
       position: relative;
       margin-top: 20px;
     }
+  }
+  .no-result-wrapper {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 </style>

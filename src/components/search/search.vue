@@ -1,21 +1,40 @@
 <template>
-  <div class="search">
+  <div class="search" @touchmove.prevent>
     <div class="search-box-wrapper">
       <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="query"></search-box>
     </div>
-    <div class="shortcut-wrapper" v-show="!keyWord">
+    <scroll class="shortcut-wrapper" :data="shortcut" v-show="!keyWord" ref="scroll">
       <div class="shortcut">
         <div class="hot-key">
           <h3 class="title">热门搜索</h3>
-          <ul>
-            <li class="item" v-for="(item,index) in hotkey" :key="index" @click="addKeyWord(item.k)">{{item.k}}</li>
-          </ul>
+          <div class="hot-key-list">
+            <ul>
+              <li class="item" v-for="(item,index) in hotkey" :key="index" @click="addKeyWord(item.k)">{{item.k}}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="search-history" v-show="searchHistory.length">
+          <h3 class="title clearfix">
+            <span class="text">搜索历史</span>
+            <span class="clear" @click="showConfirm">
+              <i class="vue-music-icon icon-dle"></i>
+            </span>
+          </h3>
+          <div class="search-list-wrapper">
+            <search-list :searches="searchHistory" @select="addKeyWord" @delete="deleteOneSearch"></search-list>
+          </div>
         </div>
       </div>
-    </div>
+    </scroll>
     <div class="search-result" v-show="keyWord">
-      <Suggest :keyWord="keyWord"></Suggest>
+      <Suggest :keyWord="keyWord" @listScroll="blurInput" @select="saveSearch"></Suggest>
     </div>
+    <confirm ref="confirm"
+             text="是否要清空所有搜索记录？"
+             confirmBtnText="清空"
+             @confirm="deleteAllSearch"
+    >
+    </confirm>
     <transition name="slide-fade">
       <router-view></router-view>
     </transition>
@@ -24,9 +43,14 @@
 
 <script type="text/ecmascript-6">
 import SearchBox from 'base/search-box/search-box'
+import SearchList from 'base/search-list/search-list'
 import Suggest from 'components/suggest/suggest'
+import Scroll from 'base/scroll/scroll'
+import Confirm from 'base/confirm/confirm'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/jsonp-data-config'
+import { mapActions, mapGetters } from 'vuex'
+
 export default {
   data() {
     return {
@@ -35,9 +59,22 @@ export default {
       keyWord: ''
     }
   },
+  computed: {
+    shortcut() {
+      return this.hotkey.concat(this.searchHistory)
+    },
+    ...mapGetters([
+      'searchHistory'
+    ])
+  },
   created() {
     this._getHotKey()
   },
+  // mounted() {
+  // setTimeout(() => {
+  //   this.$refs.scroll.refresh()
+  // }, 5000)
+  // },
   methods: {
     query(k) {
       console.log(k)
@@ -46,17 +83,48 @@ export default {
     _getHotKey() {
       getHotKey().then(res => {
         if (res.code === ERR_OK) {
-          this.hotkey = res.data.hotkey.slice(0, 6)
+          this.hotkey = res.data.hotkey.slice(0, 10)
         }
       })
     },
     addKeyWord(key) {
       this.$refs.searchBox.setKeyWord(key)
+    },
+    blurInput() {
+      this.$refs.searchBox.blur()
+    },
+    saveSearch() {
+      this.saveSearchHistory(this.keyWord)
+    },
+    deleteOneSearch(key) {
+      this.deleteSearchHistory(key)
+    },
+    deleteAllSearch() {
+      this.clearSearchHistory()
+    },
+    showConfirm() {
+      this.$refs.confirm.show()
+    },
+    ...mapActions([
+      'saveSearchHistory',
+      'deleteSearchHistory',
+      'clearSearchHistory'
+    ])
+  },
+  watch: {
+    keyWord(newVal) {
+      if (newVal) return
+      setTimeout(() => {
+        this.$refs.scroll.refresh()
+      }, 20)
     }
   },
   components: {
     SearchBox,
-    Suggest
+    SearchList,
+    Suggest,
+    Scroll,
+    Confirm
   }
 }
 </script>
@@ -64,35 +132,67 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable";
 .search {
+  width: 100%;
+  position: fixed;
+  top: 113px;
+  bottom: 0;
   .search-box-wrapper {
     margin-top: 10px;
   }
   .shortcut-wrapper {
-    margin-top: 30px;
+    position: fixed;
+    top: 164px;
+    bottom: 0;
+    width: 100%;
+    overflow: hidden;
     .shortcut {
+      // height: 100%;
+      margin: 0 15px;
+      padding-top: 20px;
       .hot-key {
         .title {
           font-size: $font-size-s-x;
           color: $color-theme-text-s;
-          margin-left: 15px;
         }
-        ul {
-          padding-top: 5px;
-          padding-right: 15px;
-          .item {
-            display: inline-block;
-            font-size: $font-size-m;
-            color: $color-text-l;
-            background-color: #222937;
+        .hot-key-list {
+          padding: 15px 0;
+          ul {
+            margin: -10px 0 0 -15px;
+            .item {
+              display: inline-block;
+              font-size: $font-size-m;
+              color: $color-text-l;
+              background-color: #222937;
+              padding: 6px;
+              margin-left: 15px;
+              margin-top: 10px;
+              border-radius: 3px;
+            }
+          }
+        }
+      }
+      .search-history {
+        .title {
+          display: flex;
+          align-items: center;
+          font-size: $font-size-s-x;
+          color: $color-theme-text-s;
+          .text {
+            flex: 1;
+          }
+          .clear {
             padding: 6px;
-            margin-left: 15px;
-            margin-top: 10px;
-            border-radius: 3px;
+            margin-right: -6px;
           }
         }
       }
     }
   }
+}
+.clearfix:after {
+  content: "";
+  display: block;
+  clear: both;
 }
 .slide-fade-enter-active,
 .slide-fade-leave-active {

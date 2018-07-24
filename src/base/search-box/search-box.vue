@@ -2,7 +2,7 @@
   <div id="search-box">
     <div class="search-wrapper">
       <i class="vue-music-icon icon-search"></i>
-      <input type="text" class="box" :placeholder="inputPrompt" v-model="keyWord"/>
+      <input type="text" class="box" :placeholder="inputPrompt" v-model="keyWord" ref="box"/>
       <div class="del" v-show="keyWord" @click="clear">
         <i class="vue-music-icon icon-icon-test"></i>
       </div>
@@ -10,6 +10,8 @@
   </div>
 </template>
 <script type="text/ecmascript-6">
+import { debounce } from 'common/js/util'
+
 export default {
   props: {
     inputPrompt: {
@@ -23,9 +25,9 @@ export default {
     }
   },
   created() {
-    this.$watch('keyWord', (newkeyWord) => {
+    this.$watch('keyWord', debounce((newkeyWord) => {
       this.$emit('query', newkeyWord)
-    })
+    }, 300))
   },
   methods: {
     clear() {
@@ -33,6 +35,9 @@ export default {
     },
     setKeyWord(key) {
       this.keyWord = key
+    },
+    blur() {
+      this.$refs.box.blur()
     }
   }
 }

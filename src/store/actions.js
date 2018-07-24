@@ -1,6 +1,7 @@
 import * as types from './mutation-types'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
+import { saveSearch, deleteSearch, clearSearch } from 'common/js/cache'
 
 // 当多个状态一起操作也可以在这里面设置；
 // 例如同时要设置播放的列表播放器显示状态...
@@ -83,4 +84,17 @@ export const insertSong = function ({ commit, state }, song) {
   commit(types.SET_CURRENT_INDEX, currentIndex)
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
+}
+
+// 设置搜索记录
+export const saveSearchHistory = function ({ commit }, keyWord) {
+  commit(types.SET_SEARCH_HISTORY, saveSearch(keyWord))
+}
+// 删除搜索记录
+export const deleteSearchHistory = function ({ commit }, keyWord) {
+  commit(types.SET_SEARCH_HISTORY, deleteSearch(keyWord))
+}
+// 清空搜索记录
+export const clearSearchHistory = function ({ commit }) {
+  commit(types.SET_SEARCH_HISTORY, clearSearch())
 }
