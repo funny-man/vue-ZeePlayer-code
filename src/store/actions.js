@@ -85,7 +85,44 @@ export const insertSong = function ({ commit, state }, song) {
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
 }
-
+// 删除歌曲
+export const deleteSong = function ({ commit, state }, song) {
+  let playlist = state.playlist.slice()
+  let sequenceList = state.sequenceList.slice()
+  // 当前歌曲在playlist的index
+  let currentIndex = state.currentIndex
+  // 当前歌曲
+  let currentSong = playlist[currentIndex]
+  // 当前歌曲在sequenceList的index
+  let currentSongIndex = findIndex(sequenceList, currentSong)
+  // 删除的歌曲分别在playlist和sequenceList的index
+  let plIndex = findIndex(playlist, song)
+  let slIndex = findIndex(sequenceList, song)
+  playlist.splice(plIndex, 1)
+  sequenceList.splice(slIndex, 1)
+  // if (currentIndex === playlist.length) {
+  //   currentIndex = playlist.length - 1
+  // }
+  // if (currentIndex > plIndex) {
+  //   currentIndex--
+  // }
+  // if ((currentIndex - plIndex) === 1) {
+  //   currentIndex = plIndex
+  // }
+  if (currentSongIndex === slIndex && currentSongIndex === sequenceList.length) {
+    let index = playlist.length - 1
+    let song = sequenceList[index]
+    currentIndex = playlist[song]
+  }
+  if (currentSongIndex !== slIndex) {
+    currentIndex = findIndex(sequenceList, currentSong)
+  }
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_PLAYLIST, playlist)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+  // commit(types.SET_FULL_SCREEN, true)
+  // commit(types.SET_PLAYING_STATE, true)
+}
 // 设置搜索记录
 export const saveSearchHistory = function ({ commit }, keyWord) {
   commit(types.SET_SEARCH_HISTORY, saveSearch(keyWord))

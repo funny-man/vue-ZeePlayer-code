@@ -110,12 +110,12 @@ export default {
       this.hasMore = true
       this.$refs.suggest.scrollTo(0, 0)
       search(this.keyWord, this.page, this.showSinger, perpage).then(res => {
+        console.log(res.data)
         if (res.code === ERR_OK) {
           this.result = this._genResult(res.data)
           this.result.forEach((item) => {
             this._getSongKey(item.mid)
           })
-          console.log(res.data)
           this._checkMore(res.data)
         }
       })

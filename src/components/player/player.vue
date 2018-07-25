@@ -107,11 +107,13 @@
         <div class="btn play-btn" @click.stop="togglePlaying">
           <i class="vue-music-icon" :class="playIcon"></i>
         </div>
-        <div class="btn list-btn" @click.stop="play">
+        <div class="btn list-btn" @click.stop="showPlaylist">
           <i class="vue-music-icon icon-song-list"></i>
         </div>
       </div>
     </transition>
+
+    <playlist ref="playlist"></playlist>
 
     <audio  :src="songUrl"
             v-if="currentSong"
@@ -123,6 +125,7 @@
             @waiting="waiting"
             @ended="end"
     ></audio>
+
   </div>
 </template>
 
@@ -134,6 +137,7 @@ import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 import { prefixStyle } from 'common/js/dom'
+import Playlist from 'components/playlist/playlist'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
@@ -346,6 +350,9 @@ export default {
       this.resetCurrentIndex(list)
       this.setPlayList(list)
     },
+    showPlaylist() {
+      this.$refs.playlist.show()
+    },
     ready(e) {
       console.log('可以播放哦')
       this.showLoading = false
@@ -520,7 +527,8 @@ export default {
     })
   },
   components: {
-    Scroll
+    Scroll,
+    Playlist
   },
   watch: {
     currentSong(newSong, oldSong) {
