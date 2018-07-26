@@ -1,5 +1,5 @@
 <template>
-  <div class="player" v-show="playlist.length>0">
+  <div class="player"  v-show="playlist.length>0">
     <transition name="normal"
                 @enter="enter"
                 @after-enter="afterEnter"
@@ -363,7 +363,7 @@ export default {
       if (!this.shouldUpdate) return
       this.shouldUpdate = false
       setTimeout(() => {
-        if (this.updateTimeLock) {
+        if (this.updateTimeLock && e.target.currentTime) {
           this.curTime = e.target.currentTime
           // if (this.currentLyric) {
           //   this.currentLyric.seek(this.curTime * 1000)
@@ -373,6 +373,7 @@ export default {
       }, 1000)
     },
     progress() {
+      if (!this.$refs.audio) return
       console.log('loading...')
       let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.totalTime) : 0
       this.$refs.progressbarLoading.style.width = percent * 100 + '%'
@@ -532,6 +533,7 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
+      if (!newSong) return
       console.log('改变')
       if (this.currentLyric) {
         this.currentLyric.stop()

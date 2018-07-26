@@ -37,7 +37,7 @@ export const randomPlay = function ({ commit }, list) {
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
 }
-//   搜索列表播放歌曲初始化（单个歌曲插入播放列表）
+//   添加歌曲--搜索列表播放歌曲初始化
 //   整个搜索到个歌曲点击播放逻辑是>>先插入到当前播放歌曲后面>>然后查找是否有同样歌曲>>然后删除同样歌曲
 export const insertSong = function ({ commit, state }, song) {
   // ****
@@ -89,39 +89,44 @@ export const insertSong = function ({ commit, state }, song) {
 export const deleteSong = function ({ commit, state }, song) {
   let playlist = state.playlist.slice()
   let sequenceList = state.sequenceList.slice()
+  // 定义一个当前歌曲index
+  let currentIndex
   // 当前歌曲在playlist的index
-  let currentIndex = state.currentIndex
+  let indexToPlaylist = state.currentIndex
   // 当前歌曲
-  let currentSong = playlist[currentIndex]
+  let currentSong = playlist[indexToPlaylist]
   // 当前歌曲在sequenceList的index
-  let currentSongIndex = findIndex(sequenceList, currentSong)
+  let indexToSequenceList = findIndex(sequenceList, currentSong)
+
   // 删除的歌曲分别在playlist和sequenceList的index
   let plIndex = findIndex(playlist, song)
   let slIndex = findIndex(sequenceList, song)
+
   playlist.splice(plIndex, 1)
   sequenceList.splice(slIndex, 1)
-  // if (currentIndex === playlist.length) {
-  //   currentIndex = playlist.length - 1
-  // }
-  // if (currentIndex > plIndex) {
-  //   currentIndex--
-  // }
-  // if ((currentIndex - plIndex) === 1) {
-  //   currentIndex = plIndex
-  // }
-  if (currentSongIndex === slIndex && currentSongIndex === sequenceList.length) {
-    let index = playlist.length - 1
-    let song = sequenceList[index]
-    currentIndex = playlist[song]
+
+  if (indexToSequenceList === slIndex && indexToSequenceList === sequenceList.length) {
+    currentSong = sequenceList[indexToSequenceList - 1]
+    currentIndex = findIndex(playlist, currentSong)
   }
-  if (currentSongIndex !== slIndex) {
-    currentIndex = findIndex(sequenceList, currentSong)
+  if (indexToSequenceList === slIndex && indexToSequenceList !== sequenceList.length) {
+    currentSong = sequenceList[indexToSequenceList]
+    currentIndex = findIndex(playlist, currentSong)
+  }
+  if (indexToSequenceList !== slIndex) {
+    currentIndex = findIndex(playlist, currentSong)
   }
   commit(types.SET_SEQUENCE_LIST, sequenceList)
   commit(types.SET_PLAYLIST, playlist)
   commit(types.SET_CURRENT_INDEX, currentIndex)
-  // commit(types.SET_FULL_SCREEN, true)
   // commit(types.SET_PLAYING_STATE, true)
+}
+// 清空歌曲
+export const clearSongList = function ({ commit, state }) {
+  commit(types.SET_PLAYING_STATE, false)
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_PLAYLIST, [])
+  commit(types.SET_CURRENT_INDEX, -1)
 }
 // 设置搜索记录
 export const saveSearchHistory = function ({ commit }, keyWord) {

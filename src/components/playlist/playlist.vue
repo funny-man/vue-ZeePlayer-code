@@ -92,8 +92,8 @@ export default {
     },
     confirmClear() {
       console.log('确定')
-      // this.deleteSongList()
-      // this.hide()
+      this.clearSongList()
+      this.hide()
     },
     changeMode() {
       console.log('切换播放模式')
@@ -141,8 +141,8 @@ export default {
       // setPlayList: 'SET_PLAYLIST'
     }),
     ...mapActions([
-      'deleteSong'
-      // 'deleteSongList'
+      'deleteSong',
+      'clearSongList'
     ])
   },
   watch: {
