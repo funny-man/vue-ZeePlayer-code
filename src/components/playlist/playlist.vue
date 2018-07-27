@@ -5,25 +5,22 @@
         <div class="list-header">
           <h1 class="title">
             <i class="vue-music-icon" :class="iconMode" @click="changeMode"></i>
-            <span class="text">{{modeText}}</span>
+            <span class="text" @click="changeMode">{{modeText}}</span>
             <span class="clear" @click="showConfirm"><i class="vue-music-icon icon-dle"></i></span>
           </h1>
         </div>
-        <!-- <scroll ref="listContent" :data="sequenceList" class="list-content" :refreshDelay="refreshDelay"> -->
         <scroll ref="listContent" :data="sequenceList" class="list-content">
           <transition-group ref="list" name="list" tag="ul">
             <li :key="item.id"
                 class="item"
                 v-for="(item,index) in sequenceList"
                 @click="selectItem(item,index)">
-              <!-- <i class="current" :class="getCurrentIcon(item)"></i> -->
               <span class="current">
                 <i class="vue-music-icon" :class="getCurrentIcon(item)"></i>
               </span>
               <span class="text">{{item.name}}</span>
               <span @click.stop="toggleFavorite(item)" class="like">
                 <i class="vue-music-icon icon-like-y"></i>
-                <!-- <i :class="getFavoriteIcon(item)"></i> -->
               </span>
               <span @click.stop="deleteOne(item)" class="delete">
                 <i class="vue-music-icon icon-icon-test"></i>
@@ -42,7 +39,7 @@
         </div>
       </div>
       <confirm ref="confirm" @confirm="confirmClear" text="是否清空播放列表" confirmBtnText="清空"></confirm>
-      <!-- <add-song ref="addSong"></add-song> -->
+      <add-song ref="addSong"></add-song>
     </div>
   </transition>
 </template>
@@ -52,27 +49,24 @@ import { mapGetters, mapMutations, mapActions } from 'vuex'
 import { playMode } from 'common/js/config'
 import Scroll from 'base/scroll/scroll'
 import Confirm from 'base/confirm/confirm'
-// // import AddSong from 'components/add-song/add-song'
-// // import { playerMixin } from 'common/js/mixin'
+import AddSong from 'components/add-song/add-song'
+import { playerMixin } from 'common/js/mixin'
 
 export default {
-  //   // mixins: [playerMixin],
+  mixins: [playerMixin],
   data() {
     return {
       showFlag: false,
-      refreshDelay: 120,
-      iconMode: 'icon-random'
+      refreshDelay: 120
     }
   },
   computed: {
     modeText() {
-      return '顺序播放'
-      // return this.mode === playMode.sequence ? '顺序播放' : this.mode === playMode.random ? '随机播放' : '单曲循环'
+      return this.mode === playMode.sequence ? '顺序播放' : this.mode === playMode.random ? '随机播放' : '单曲循环'
     },
     ...mapGetters([
       'sequenceList',
       'currentSong',
-      'mode',
       'playlist'
     ])
   },
@@ -91,12 +85,9 @@ export default {
       this.$refs.confirm.show()
     },
     confirmClear() {
-      console.log('确定')
+      console.log('确定清空')
       this.clearSongList()
       this.hide()
-    },
-    changeMode() {
-      console.log('切换播放模式')
     },
     getCurrentIcon(item) {
       if (this.currentSong.id === item.id) {
@@ -125,7 +116,7 @@ export default {
     },
     addSong() {
       console.log('addsong')
-      // this.$refs.addSong.show()
+      this.$refs.addSong.show()
     },
     scrollToCurrent(current) {
       const index = this.sequenceList.findIndex((song) => {
@@ -157,8 +148,8 @@ export default {
   },
   components: {
     Scroll,
-    Confirm
-    // AddSong
+    Confirm,
+    AddSong
   }
 }
 </script>
@@ -209,7 +200,6 @@ export default {
       .title {
         display: flex;
         align-items: center;
-
         .vue-music-icon {
           padding: 6px;
           font-size: $font-size-l-x;
@@ -239,7 +229,7 @@ export default {
         display: flex;
         align-items: center;
         height: 40px;
-        padding: 0 20px 0 20px;
+        padding: 0 10px 0 20px;
         overflow: hidden;
 
         &.list-enter-active,
@@ -268,7 +258,11 @@ export default {
           text-overflow: ellipsis;
         }
         .like {
-          margin-right: 15px;
+          width: 40px;
+          height: 40px;
+          text-align: center;
+          line-height: 40px;
+          // margin-right: 10px;
           font-size: $font-size-m;
           color: $color-theme-text-s;
 
@@ -278,6 +272,10 @@ export default {
         }
 
         .delete {
+          width: 40px;
+          height: 40px;
+          text-align: center;
+          line-height: 40px;
           font-size: $font-size-m;
           color: $color-theme-text-s;
         }

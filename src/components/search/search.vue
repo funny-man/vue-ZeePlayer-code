@@ -1,7 +1,7 @@
 <template>
   <div class="search" @touchmove.prevent>
     <div class="search-box-wrapper">
-      <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="query"></search-box>
+      <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="keyWordChange"></search-box>
     </div>
     <scroll class="shortcut-wrapper" :data="shortcut" v-show="!keyWord" ref="scroll">
       <div class="shortcut">
@@ -49,23 +49,21 @@ import Scroll from 'base/scroll/scroll'
 import Confirm from 'base/confirm/confirm'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/jsonp-data-config'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
+import { searchMixin } from 'common/js/mixin'
 
 export default {
+  mixins: [searchMixin],
   data() {
     return {
       inputPrompt: '搜索歌曲/歌手',
-      hotkey: [],
-      keyWord: ''
+      hotkey: []
     }
   },
   computed: {
     shortcut() {
       return this.hotkey.concat(this.searchHistory)
-    },
-    ...mapGetters([
-      'searchHistory'
-    ])
+    }
   },
   created() {
     this._getHotKey()
@@ -76,25 +74,12 @@ export default {
   // }, 5000)
   // },
   methods: {
-    query(k) {
-      console.log(k)
-      this.keyWord = k
-    },
     _getHotKey() {
       getHotKey().then(res => {
         if (res.code === ERR_OK) {
           this.hotkey = res.data.hotkey.slice(0, 10)
         }
       })
-    },
-    addKeyWord(key) {
-      this.$refs.searchBox.setKeyWord(key)
-    },
-    blurInput() {
-      this.$refs.searchBox.blur()
-    },
-    saveSearch() {
-      this.saveSearchHistory(this.keyWord)
     },
     deleteOneSearch(key) {
       this.deleteSearchHistory(key)
@@ -106,8 +91,6 @@ export default {
       this.$refs.confirm.show()
     },
     ...mapActions([
-      'saveSearchHistory',
-      'deleteSearchHistory',
       'clearSearchHistory'
     ])
   },
@@ -187,6 +170,12 @@ export default {
         }
       }
     }
+  }
+  .search-result {
+    position: fixed;
+    top: 164px;
+    bottom: 0;
+    width: 100%;
   }
 }
 .clearfix:after {

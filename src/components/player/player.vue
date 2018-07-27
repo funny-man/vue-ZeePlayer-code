@@ -65,7 +65,7 @@
                   </div>
                 </div>
                 <div class="progressbar-loading" ref="progressbarLoading"></div>
-                <div class="play-time">
+                <div class="play-time" @click.stop>
                     <span class="cur">{{ format(curTime) }}</span>
                     <span class="total">{{ format(totalTime) }}</span>
                 </div>
@@ -133,16 +133,18 @@
 import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { playMode } from 'common/js/config'
-import { shuffle } from 'common/js/util'
+// import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 import { prefixStyle } from 'common/js/dom'
 import Playlist from 'components/playlist/playlist'
+import { playerMixin } from 'common/js/mixin'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
+  mixins: [playerMixin],
   data() {
     return {
       totalTime: 0,
@@ -167,9 +169,6 @@ export default {
     playIcon() {
       return this.playing ? 'icon-pause-b' : 'icon-play-b'
     },
-    iconMode() {
-      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-    },
     cdRotate() {
       return this.playing ? 'play' : 'play pause'
     },
@@ -179,7 +178,6 @@ export default {
       'currentSong',
       'playing',
       'currentIndex',
-      'mode',
       'sequenceList'
     ])
   },
@@ -336,20 +334,6 @@ export default {
         this.currentLyric.seek(0)
       }
     },
-    changeMode() {
-      console.log('changeMode')
-      const mode = (this.mode + 1) % 3
-      this.setPlayMode(mode)
-      let list = null
-      // 如果是随机模式则把sequenceList（原始列表）重新洗牌设置到playList
-      if (this.mode === playMode.random) {
-        list = shuffle(this.sequenceList)
-      } else {
-        list = this.sequenceList
-      }
-      this.resetCurrentIndex(list)
-      this.setPlayList(list)
-    },
     showPlaylist() {
       this.$refs.playlist.show()
     },
@@ -392,12 +376,6 @@ export default {
       let minStr = min >= 10 ? min : '0' + min
       let secStr = sec >= 10 ? sec : '0' + sec
       return minStr + ':' + secStr
-    },
-    resetCurrentIndex(list) {
-      let index = list.findIndex((item) => {
-        return item.id === this.currentSong.id
-      })
-      this.setCurrentIndex(index)
     },
     resetData() {
       this.curTime = 0
@@ -521,10 +499,7 @@ export default {
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlayList: 'SET_PLAYLIST'
+      setPlayingState: 'SET_PLAYING_STATE'
     })
   },
   components: {

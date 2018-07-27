@@ -178,9 +178,7 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable";
 .suggest {
-  position: fixed;
-  top: 164px;
-  bottom: 0;
+  height: 100%;
   width: 100%;
   overflow: hidden;
   .suggest-list {
