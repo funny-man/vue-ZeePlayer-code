@@ -130,7 +130,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { playMode } from 'common/js/config'
 // import { shuffle } from 'common/js/util'
@@ -338,9 +338,9 @@ export default {
       this.$refs.playlist.show()
     },
     ready(e) {
-      console.log('可以播放哦')
       this.showLoading = false
       this.totalTime = e.target.duration
+      this.savePlayHistory(this.currentSong)
     },
     error() { },
     updateTime(e) {
@@ -500,7 +500,10 @@ export default {
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE'
-    })
+    }),
+    ...mapActions([
+      'savePlayHistory'
+    ])
   },
   components: {
     Scroll,

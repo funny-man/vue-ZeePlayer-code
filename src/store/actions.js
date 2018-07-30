@@ -1,7 +1,7 @@
 import * as types from './mutation-types'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
-import { saveSearch, deleteSearch, clearSearch } from 'common/js/cache'
+import { saveSearch, deleteSearch, clearSearch, savePlay, deletePlay, clearPlay } from 'common/js/cache'
 
 // 当多个状态一起操作也可以在这里面设置；
 // 例如同时要设置播放的列表播放器显示状态...
@@ -39,7 +39,7 @@ export const randomPlay = function ({ commit }, list) {
 }
 //   添加歌曲--搜索列表播放歌曲初始化
 //   整个搜索到个歌曲点击播放逻辑是>>先插入到当前播放歌曲后面>>然后查找是否有同样歌曲>>然后删除同样歌曲
-export const insertSong = function ({ commit, state }, song) {
+export const insertSong = function ({ commit, state }, song, isfullScreen) {
   // ****
   // 这里在state.playlist后面使用slice()是为了创建一个副本
   // 如果不创建副本由于state.playlist是一个对象直接复制是浅拷贝当下面修改playlist同时会修改state.playlist
@@ -128,6 +128,7 @@ export const clearSongList = function ({ commit, state }) {
   commit(types.SET_PLAYLIST, [])
   commit(types.SET_CURRENT_INDEX, -1)
 }
+
 // 设置搜索记录
 export const saveSearchHistory = function ({ commit }, keyWord) {
   commit(types.SET_SEARCH_HISTORY, saveSearch(keyWord))
@@ -139,4 +140,17 @@ export const deleteSearchHistory = function ({ commit }, keyWord) {
 // 清空搜索记录
 export const clearSearchHistory = function ({ commit }) {
   commit(types.SET_SEARCH_HISTORY, clearSearch())
+}
+
+// 设置播放记录
+export const savePlayHistory = function ({ commit }, song) {
+  commit(types.SET_PLAY_HISTORY, savePlay(song))
+}
+// 删除播放记录
+export const deletePlayHistory = function ({ commit }, song) {
+  commit(types.SET_PLAY_HISTORY, deletePlay(song))
+}
+// 清空播放记录
+export const clearPlayHistory = function ({ commit }) {
+  commit(types.SET_PLAY_HISTORY, clearPlay())
 }

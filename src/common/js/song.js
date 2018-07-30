@@ -52,6 +52,9 @@ export function filterSinger(singer) {
   if (!singer) {
     return ''
   }
+  if (typeof singer === 'string') {
+    return singer
+  }
   singer.forEach((el) => {
     ret.push(el.name)
   })
