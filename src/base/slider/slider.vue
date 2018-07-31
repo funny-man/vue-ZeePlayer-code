@@ -206,7 +206,7 @@ export default {
           display: block;
           width: 100%;
           border-radius: 8px;
-          box-shadow: 0px 4px 9px rgba($color: #090f1c, $alpha: 0.7);
+          box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
         }
       }
     }

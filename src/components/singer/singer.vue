@@ -12,6 +12,10 @@ import listView from 'base/listview/listview'
 import { getSinger } from 'api/singer'
 import Singer from 'common/js/singer'
 import { ERR_OK } from 'api/jsonp-data-config'
+import { mapMutations } from 'vuex'
+
+const HOT_SINGER_LEN = 10
+const HOT_NAME = '热门'
 
 export default {
   data: function () {
@@ -24,16 +28,20 @@ export default {
   },
   methods: {
     selectSinger(singer) {
-      console.log(singer)
       //  this.$router是router的编程式的跳转接口
       //  前面tab的跳转用的是<router-link tag="div" class="tab-item" to="/essence">
       this.$router.push({
         path: `/singer/${singer.id}`
       })
+      console.log('setSinger:')
+      console.log(singer)
+      this.setSinger(singer)
     },
     _getSinger() {
       getSinger().then(res => {
         if (res.code === ERR_OK) {
+          console.log('getSingers:')
+          console.log(res.data)
           this.singerData = this._normalizeSinger(res.data.list)
         }
       })
@@ -46,8 +54,8 @@ export default {
         }
       }
       list.forEach((item, index) => {
-        if (index < 10) {
-          map.hot.items.push(new Singer(item.Fsinger_id, item.Fsinger_name, item.Fsinger_mid))
+        if (index < HOT_SINGER_LEN) {
+          map.hot.items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
         }
         const key = item.Findex
         if (!map[key]) {
@@ -56,7 +64,7 @@ export default {
             items: []
           }
         }
-        map[key].items.push(new Singer(item.Fsinger_id, item.Fsinger_name, item.Fsinger_mid))
+        map[key].items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
       })
       //  处理map把数据分组
       let hot = []
@@ -66,7 +74,7 @@ export default {
         let val = map[key]
         if (val.title.match(/[a-zA-Z]/)) {
           ret.push(val)
-        } else if (val.title === '热门') {
+        } else if (val.title === HOT_NAME) {
           hot.push(val)
         } else {
           val.title = '#'
@@ -86,7 +94,12 @@ export default {
         return a.title.charCodeAt(0) - b.title.charCodeAt(0)
       })
       return hot.concat(otherMerge, ret)
-    }
+    },
+    ...mapMutations({
+      // 将 `this.setSinger()` 映射为 `this.$store.commit('SET_SINGER')`
+      // vuex提供的语法糖可以吧commit的方法使用组件内部的方法调用
+      setSinger: 'SET_SINGER'
+    })
   },
   components: {
     listView
@@ -102,7 +115,7 @@ export default {
   top: 113px;
   bottom: 0;
   // overflow: hidden;
-  background-color: $color-timeline;
+  background-color:#101622;;
   .loading-ct {
     width: 100%;
     position: absolute;
@@ -110,12 +123,13 @@ export default {
     transform: translate(0, -50%);
   }
 }
-.slide-fade-enter-active, .slide-fade-leave-active {
-  transition: all .3s ease;
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.5s ease;
 }
 .slide-fade-enter, .slide-fade-leave-to /* .slide-fade-leave-active below version 2.1.8 */ {
   opacity: 0;
   // transform: translate3d(100%,0,0)
-  transform:scale(0)
+  transform: scale(0);
 }
 </style>

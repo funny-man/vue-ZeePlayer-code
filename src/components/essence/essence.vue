@@ -135,7 +135,7 @@ export default {
           align-items: center;
           margin: 0 19px 0 19px;
           padding: 20px 0;
-          border-bottom: 1px solid $color-timeline;
+          border-bottom: 1px solid #101622;;
           .list-pic {
             > img {
               display: block;
@@ -150,14 +150,14 @@ export default {
             .text-ct {
               h3 {
                 color: $color-text-l;
-                font-size: 15px;
+                font-size: $font-size-m;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
               }
               p {
                 color: $color-text-s;
-                font-size: 10px;
+                font-size: $font-size-s;
                 margin-top: 11px;
                 text-overflow: ellipsis;
                 white-space: nowrap;

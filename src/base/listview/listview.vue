@@ -1,6 +1,7 @@
 <template>
   <scroll class="listview"
-          :data="data" ref="listview"
+          :data="data"
+          ref="listview"
           :listenScroll="listenScroll"
           :probeType="probeType"
           @scroll="scroll"
@@ -171,28 +172,31 @@ export default {
   height: 100%;
   overflow: hidden;
   position: relative;
-  .list-group-title {
-    background-color: $color-timeline-loading;
-    font-size: $font-size-s-x;
-    color: $color-theme-1;
-    line-height: 3;
-    padding-left: 10px;
-  }
-  .list-group-items {
-    display: flex;
-    padding: 10px 0;
-    margin: 0 19px;
-    align-items: center;
-    .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
+  > ul {
+    // padding-bottom: 76px;
+    .list-group-title {
+      background-color: #1c2230;;
+      font-size: $font-size-s-x;
+      color: $color-theme-1;
+      line-height: 3;
+      padding-left: 10px;
     }
-    .name {
-      flex: 1;
-      margin-left: 14px;
-      font-size: $font-size-m;
-      color: $color-theme-text-s;
+    .list-group-items {
+      display: flex;
+      padding: 10px 0;
+      margin: 0 19px;
+      align-items: center;
+      .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+      }
+      .name {
+        flex: 1;
+        margin-left: 14px;
+        font-size: $font-size-m;
+        color: $color-theme-text-s;
+      }
     }
   }
   .list-shortcut {
@@ -224,7 +228,7 @@ export default {
     left: 0;
     z-index: 1;
     .fixed-title {
-      background-color: $color-timeline-loading;
+      background-color: #1c2230;
       font-size: $font-size-s-x;
       color: $color-theme-1;
       width: 100%;

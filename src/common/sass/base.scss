@@ -7,4 +7,5 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   background-color: $color-bg;
   color: #fff;
+  -webkit-text-size-adjust: 100%;//使iphone横屏字体不变大
 }

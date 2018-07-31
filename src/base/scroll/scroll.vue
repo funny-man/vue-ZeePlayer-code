@@ -31,6 +31,10 @@ export default {
       this._initScroll()
     }, 20)
   },
+  activated() {
+    console.log('组件激活了')
+    this.refresh()
+  },
   methods: {
     _initScroll() {
       if (!this.$refs.scroll) {
