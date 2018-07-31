@@ -9,7 +9,7 @@
             <span class="clear" @click="showConfirm"><i class="vue-music-icon icon-dle"></i></span>
           </h1>
         </div>
-        <scroll ref="listContent" :data="sequenceList" class="list-content">
+        <scroll ref="listContent" :data="sequenceList" class="list-content" :refreshTime="refreshTime">
           <transition-group ref="list" name="list" tag="ul">
             <li :key="item.id"
                 class="item"
@@ -57,7 +57,8 @@ export default {
   data() {
     return {
       showFlag: false,
-      refreshDelay: 120
+      refreshDelay: 120,
+      refreshTime: 100
     }
   },
   computed: {

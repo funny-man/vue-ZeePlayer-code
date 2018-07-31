@@ -1,12 +1,15 @@
 <template>
   <div class="m-header">
     <h1 class="music-logo">logo</h1>
-    <i class="vue-music-icon icon-user"></i>
+    <router-link to="/user" class="mine" tag="div">
+      <i class="vue-music-icon icon-user"></i>
+    </router-link>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-export default {}
+export default {
+}
 </script>
 
 <style scoped lang="scss">

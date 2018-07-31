@@ -17,17 +17,26 @@
           <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
         </div>
         <div class="list-wrapper">
-          <scroll class="play-history" v-if="currentIndex===0" :data="playHistory">
+          <scroll class="play-history" v-show="currentIndex===0" ref="playHistoryList" :data="playHistory" :refreshTime="refreshTime">
             <div class="song-list-ct">
               <song-list :songs="playHistory" @seletc="selectSong"></song-list>
             </div>
           </scroll>
-          <scroll class="search-history" v-if="currentIndex===1">hao</scroll>
+          <scroll class="search-history" v-show="currentIndex===1" ref="searchHistoryList" :data="searchHistory" :refreshTime="refreshTime">
+            <div class="search-list-ct">
+              <search-list :searches="searchHistory" @select="addKeyWord" @delete="deleteOneSearch"></search-list>
+            </div>
+          </scroll>
         </div>
         <div class="sousuolishi"></div>
       </div>
       <div class="search-result" v-show="keyWord">
-        <Suggest :keyWord="keyWord" :showSinger="showSinger" @listScroll="blurInput" @select="selectSuggest"></Suggest>
+        <Suggest :keyWord="keyWord" :showSinger="showSinger" :isFullScreen="false" @listScroll="blurInput" @select="selectSuggest"></Suggest>
+      </div>
+      <div class="top-tip-ct">
+        <top-tip class="top-tip-ct" ref="topTip" :delay="1000">
+          <p>已添加到播放列表</p>
+        </top-tip>
       </div>
     </div>
   </transition>
@@ -38,6 +47,8 @@ import Suggest from 'components/suggest/suggest'
 import Switches from 'base/switches/switches'
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
+import SearchList from 'base/search-list/search-list'
+import TopTip from 'base/top-tip/top-tip'
 import { searchMixin } from 'common/js/mixin'
 import Song from 'common/js/song'
 
@@ -53,25 +64,27 @@ export default {
         { name: '最近播放' },
         { name: '搜索历史' }
       ],
-      currentIndex: 0
+      currentIndex: 0,
+      refreshTime: 100
     }
   },
   computed: {
     ...mapGetters([
       'playHistory',
+      'searchHistory',
       'currentSong'
     ])
   },
   methods: {
     show() {
       this.showFlag = true
-      // setTimeout(() => {
-      //   if (this.currentIndex === 0) {
-      //     this.$refs.songList.refresh()
-      //   } else {
-      //     this.$refs.searchList.refresh()
-      //   }
-      // }, 20)
+      setTimeout(() => {
+        if (this.currentIndex === 0) {
+          this.$refs.playHistoryList.refresh()
+        } else {
+          this.$refs.searchHistoryList.refresh()
+        }
+      }, 20)
     },
     hide() {
       this.showFlag = false
@@ -81,8 +94,8 @@ export default {
         let songKey = song.key
         song = new Song(song)
         song.key = songKey
-        this.insertSong(song)
-        // this.$refs.topTip.show()
+        this.insertSong({ song, isFullScreen: false })
+        this.$refs.topTip.show()
       }
     },
     selectSuggest() {
@@ -92,17 +105,46 @@ export default {
     switchItem(index) {
       this.currentIndex = index
     },
+    deleteOneSearch(key) {
+      this.deleteSearchHistory(key)
+    },
     ...mapActions([
       'insertSong'
     ])
   },
+  watch: {
+    // searchHistory() {
+    //   setTimeout(() => {
+    //     this.$refs.searchHistoryList.refresh()
+    //   }, 20)
+    // },
+    keyWord(newVal) {
+      if (newVal) return
+      setTimeout(() => {
+        if (this.currentIndex === 0) {
+          this.$refs.playHistoryList.refresh()
+        } else {
+          this.$refs.searchHistoryList.refresh()
+        }
+      }, 20)
+    },
+    currentIndex(newVal) {
+      setTimeout(() => {
+        if (newVal === 0) {
+          this.$refs.playHistoryList.refresh()
+        } else {
+          this.$refs.searchHistoryList.refresh()
+        }
+      }, 20)
+    }
+  },
   components: {
     SearchBox,
     SongList,
-    // SearchList,
+    SearchList,
     Scroll,
     Switches,
-    // TopTip,
+    TopTip,
     Suggest
   }
 }
@@ -163,6 +205,10 @@ export default {
         width: 100%;
         height: 100%;
       }
+      .search-history {
+        height: 100%;
+        margin: 0 15px;
+      }
     }
   }
   .search-result {
@@ -170,6 +216,12 @@ export default {
     top: 96px;
     bottom: 0;
     width: 100%;
+  }
+  .top-tip-ct {
+    text-align: center;
+    font-size: $font-size-m;
+    color: #fff;
+    line-height: 44px;
   }
 }
 </style>

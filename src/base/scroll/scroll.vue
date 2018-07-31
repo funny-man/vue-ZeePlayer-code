@@ -32,6 +32,10 @@ export default {
     beforeScroll: {
       type: Boolean,
       default: false
+    },
+    refreshTime: {
+      type: Number,
+      default: 20
     }
   },
   mounted() {
@@ -94,8 +98,9 @@ export default {
   watch: {
     data() {
       setTimeout(() => {
+        console.log('刷新')
         this.refresh()
-      }, 20)
+      }, this.refreshTime)
     }
   }
 }

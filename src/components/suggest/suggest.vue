@@ -46,6 +46,10 @@ export default {
     showSinger: {
       type: Boolean,
       default: true
+    },
+    isFullScreen: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -67,7 +71,7 @@ export default {
         })
         this.setSinger(singer)
       } else {
-        this.insertSong(item)
+        this.insertSong({ song: item, isFullScreen: this.isFullScreen })
       }
       this.$emit('select')
     },

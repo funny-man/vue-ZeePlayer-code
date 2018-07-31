@@ -31,7 +31,7 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable";
 .search-list {
-  margin-top: 5px;
+  padding-top: 5px;
   ul {
     .search-item {
       display: flex;

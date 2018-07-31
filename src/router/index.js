@@ -5,6 +5,7 @@ import Essence from 'components/essence/essence'
 import Singer from 'components/singer/singer'
 import Ranking from 'components/ranking/ranking'
 import Search from 'components/search/search'
+import UserCenter from 'components/user-center/user-center'
 // 二级路由界面
 import SingerDetail from 'components/singer-detail/singer-detail'
 import Disc from 'components/disc/disc'
@@ -62,6 +63,11 @@ export default new Router({
           component: SingerDetail
         }
       ]
+    },
+    {
+      path: '/user',
+      name: 'UserCenter',
+      component: UserCenter
     }
   ]
 })

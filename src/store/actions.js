@@ -39,7 +39,7 @@ export const randomPlay = function ({ commit }, list) {
 }
 //   添加歌曲--搜索列表播放歌曲初始化
 //   整个搜索到个歌曲点击播放逻辑是>>先插入到当前播放歌曲后面>>然后查找是否有同样歌曲>>然后删除同样歌曲
-export const insertSong = function ({ commit, state }, song, isfullScreen) {
+export const insertSong = function ({ commit, state }, { song, isFullScreen }) {
   // ****
   // 这里在state.playlist后面使用slice()是为了创建一个副本
   // 如果不创建副本由于state.playlist是一个对象直接复制是浅拷贝当下面修改playlist同时会修改state.playlist
@@ -82,7 +82,9 @@ export const insertSong = function ({ commit, state }, song, isfullScreen) {
   commit(types.SET_SEQUENCE_LIST, sequenceList)
   commit(types.SET_PLAYLIST, playlist)
   commit(types.SET_CURRENT_INDEX, currentIndex)
-  commit(types.SET_FULL_SCREEN, true)
+  if (isFullScreen) {
+    commit(types.SET_FULL_SCREEN, true)
+  }
   commit(types.SET_PLAYING_STATE, true)
 }
 // 删除歌曲
