@@ -26,7 +26,7 @@
       @scroll="scroll"
     >
       <div class="song-list-wrapper">
-        <song-list :songs="songs" @seletc="selectItem"></song-list>
+        <song-list :songs="songs" :ranking="ranking" @seletc="selectItem"></song-list>
       </div>
       <div class="loading-ct"  v-show="!songs.length">
         <loading></loading>
@@ -41,11 +41,13 @@ import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { prefixStyle } from 'common/js/dom'
 import { mapActions } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 const NAV_HEIGHT = 44
 const transform = prefixStyle('transform')
 
 export default {
+  mixins: [playlistMixin],
   props: {
     bgImage: {
       type: String,
@@ -58,6 +60,10 @@ export default {
     title: {
       type: String,
       default: ''
+    },
+    ranking: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -85,8 +91,13 @@ export default {
     this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list.refresh()
+    },
     goBack() {
-      this.$router.push(`/singer`)
+      this.$router.back()
     },
     scroll(pos) {
       this.scrollY = pos.y
@@ -146,7 +157,7 @@ export default {
 @import "~common/sass/variable";
 .music-list {
   position: fixed;
-  z-index: 20;
+  z-index: 2;
   top: 0;
   right: 0;
   bottom: 0;
@@ -247,6 +258,7 @@ export default {
     }
     .loading-ct {
       width: 100%;
+      height: 20px;
       position: absolute;
       top: 50%;
       transform: translate(0, -50%);

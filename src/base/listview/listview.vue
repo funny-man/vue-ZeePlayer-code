@@ -6,7 +6,7 @@
           :probeType="probeType"
           @scroll="scroll"
   >
-    <ul>
+    <ul ref="listct">
       <li v-for="(group,index) in data" :key="index" ref="listgroup">
         <h4 class="list-group-title">{{ group.title }}</h4>
         <ul>
@@ -73,6 +73,9 @@ export default {
     }
   },
   methods: {
+    refresh() {
+      this.$refs.listview.refresh()
+    },
     selectItem(item) {
       this.$emit('select', item)
     },
@@ -175,7 +178,7 @@ export default {
   > ul {
     // padding-bottom: 76px;
     .list-group-title {
-      background-color: #1c2230;;
+      background-color: #1c2230;
       font-size: $font-size-s-x;
       color: $color-theme-1;
       line-height: 3;
@@ -235,6 +238,13 @@ export default {
       line-height: 3;
       padding-left: 10px;
     }
+  }
+  .loading-ct {
+    width: 100%;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
   }
 }
 </style>

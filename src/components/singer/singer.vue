@@ -1,6 +1,6 @@
 <template>
-  <div id="singer">
-    <list-view :data="singerData" @select="selectSinger"></list-view>
+  <div id="singer" ref="singer">
+    <list-view :data="singerData" @select="selectSinger" ref="list"></list-view>
     <transition name="slide-fade">
       <router-view></router-view>
     </transition>
@@ -13,11 +13,13 @@ import { getSinger } from 'api/singer'
 import Singer from 'common/js/singer'
 import { ERR_OK } from 'api/jsonp-data-config'
 import { mapMutations } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
 
 export default {
+  mixins: [playlistMixin],
   data: function () {
     return {
       singerData: []
@@ -27,6 +29,12 @@ export default {
     this._getSinger()
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      // 通过子组件的$refs选择子组件的绑定了ref属性元素
+      this.$refs.list.$refs.listct.style.paddingBottom = bottom
+      this.$refs.list.refresh()
+    },
     selectSinger(singer) {
       //  this.$router是router的编程式的跳转接口
       //  前面tab的跳转用的是<router-link tag="div" class="tab-item" to="/essence">
@@ -55,7 +63,7 @@ export default {
       }
       list.forEach((item, index) => {
         if (index < HOT_SINGER_LEN) {
-          map.hot.items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
+          map.hot.items.push(new Singer({ name: item.Fsinger_name, id: item.Fsinger_mid }))
         }
         const key = item.Findex
         if (!map[key]) {
@@ -64,7 +72,7 @@ export default {
             items: []
           }
         }
-        map[key].items.push(new Singer(item.Fsinger_name, item.Fsinger_mid))
+        map[key].items.push(new Singer({ name: item.Fsinger_name, id: item.Fsinger_mid }))
       })
       //  处理map把数据分组
       let hot = []
@@ -109,13 +117,16 @@ export default {
 
 <style scoped lang="scss">
 @import "~common/sass/variable.scss";
+#test {
+  width: 100px;
+  height: 100px;
+  background-color: pink;
+}
 #singer {
   position: fixed;
   width: 100%;
   top: 113px;
   bottom: 0;
-  // overflow: hidden;
-  background-color:#101622;;
   .loading-ct {
     width: 100%;
     position: absolute;

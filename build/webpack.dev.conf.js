@@ -48,9 +48,45 @@ const devWebpackConfig = merge(baseWebpackConfig, {
             referer: 'https://c.y.qq.com/',
             host: 'c.y.qq.com'
           },
-          params: req.query  // 通过前端传入的req获取到请求参数
-        }).then((response) => {// 这个response是最终获取的数据，透传给res再通过res响应给rc/api/essence.js（前端）
+          params: req.query // 通过前端传入的req获取到请求参数
+        }).then((response) => { // 这个response是最终获取的数据，透传给res再通过res响应给rc/api/essence.js（前端）
           res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
+      app.get('/api/getTopList', function (req, res) {
+        let url = 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
+      app.get('/api/getSongList', function (req, res) {
+        let url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          let ret = response.data
+          if (typeof ret === 'string') {
+            let reg = /^\w+\((\{.*\})\)$/
+            let matches = ret.match(reg)
+            if (matches) {
+              ret = JSON.parse(matches[1])
+            }
+          }
+          res.json(ret)
         }).catch((e) => {
           console.log(e)
         })
@@ -64,10 +100,10 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           },
           params: req.query
         }).then((response) => {
-          var ret = response.data
+          let ret = response.data
           if (typeof ret === 'string') {
-            var reg = /^\w+\(({[^()]+})\)$/
-            var matches = ret.match(reg)
+            let reg = /^\w+\((\{.*\})\)$/
+            let matches = ret.match(reg)
             if (matches) {
               ret = JSON.parse(matches[1])
             }
@@ -77,13 +113,27 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           console.log(e)
         })
       })
+      app.get('/api/search', function (req, res) {
+        let url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
     },
-    //  上面是请求代理谁前端的请求在这里接收3；然后想qq音乐发送请求把数据在传给前端
+    //  上面是请求代理前端的请求在这里接收；然后想qq音乐发送请求把数据在传给前端
     clientLogLevel: 'warning',
     historyApiFallback: {
       rewrites: [
-        { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
-      ],
+        { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') }
+      ]
     },
     hot: true,
     contentBase: false, // since we use CopyWebpackPlugin.
@@ -98,7 +148,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     proxy: config.dev.proxyTable,
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
-      poll: config.dev.poll,
+      poll: config.dev.poll
     }
   },
   plugins: [
@@ -139,7 +189,7 @@ module.exports = new Promise((resolve, reject) => {
       // Add FriendlyErrorsPlugin
       devWebpackConfig.plugins.push(new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
+          messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`]
         },
         onErrors: config.dev.notifyOnErrors
           ? utils.createNotifierCallback()

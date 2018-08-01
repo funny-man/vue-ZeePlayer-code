@@ -1,5 +1,5 @@
 <template>
-  <div id="essence">
+  <div id="essence" ref="essence">
     <scroll class="essence-ct" :data="hotList" ref="scroll">
       <div>
         <div v-if="sliders.length" class="essence-slider">
@@ -14,7 +14,7 @@
         <div class="essence-list">
           <h2>HIT LIST</h2>
           <ul>
-            <li class="clearfix" v-for="(item,index) in hotList" :key="index">
+            <li class="clearfix" v-for="(item,index) in hotList" :key="index" @click="selectItem(item)">
               <div class="list-pic">
                 <img v-lazy="item.imgurl" alt="">
               </div>
@@ -35,6 +35,9 @@
         <loading></loading>
       </div>
     </scroll>
+    <transition name="slide-fade">
+      <router-view></router-view>
+    </transition>
   </div>
 </template>
 
@@ -42,11 +45,14 @@
 import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
 import Loading from 'base/loading/loading'
+import { playlistMixin } from 'common/js/mixin'
+import { mapMutations } from 'vuex'
 
 import { getSliders, getHotList } from 'api/essence'
 import { ERR_OK } from 'api/jsonp-data-config'
 
 export default {
+  mixins: [playlistMixin],
   data: function () {
     return {
       sliders: [],
@@ -61,6 +67,18 @@ export default {
     this._getHotList()
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      this.$refs.essence.style.bottom = bottom
+      this.$refs.scroll.refresh()
+    },
+    selectItem(item) {
+      console.log(item)
+      this.$router.push({
+        path: `/essence/${item.dissid}`
+      })
+      this.setDisc(item)
+    },
     _getSliders() {
       getSliders().then(res => {
         if (res.code === ERR_OK) {
@@ -87,7 +105,10 @@ export default {
           this.$refs.scroll.refresh()
         }, 5000)
       }
-    }
+    },
+    ...mapMutations({
+      setDisc: 'SET_DISC'
+    })
     // ,
     // setErrorImg() {
     //   this.defaultImg = '{height: 10px}'
@@ -109,7 +130,6 @@ export default {
   position: fixed;
   top: 113px;
   bottom: 0;
-  overflow: hidden;
   .essence-ct {
     width: 100%;
     height: 100%;
@@ -135,7 +155,7 @@ export default {
           align-items: center;
           margin: 0 19px 0 19px;
           padding: 20px 0;
-          border-bottom: 1px solid #101622;;
+          border-bottom: 1px solid #101622;
           .list-pic {
             > img {
               display: block;
@@ -151,6 +171,7 @@ export default {
               h3 {
                 color: $color-text-l;
                 font-size: $font-size-m;
+                padding: 1px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -158,11 +179,11 @@ export default {
               p {
                 color: $color-text-s;
                 font-size: $font-size-s;
-                margin-top: 11px;
+                margin-top: 10px;
+                padding: 1px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 overflow: hidden;
-                text-overflow: ellipsis;
               }
             }
           }
@@ -177,6 +198,7 @@ export default {
     }
     .loading-ct {
       width: 100%;
+      height: 20px;
       position: absolute;
       top: 50%;
       transform: translate(0, -50%);
@@ -187,5 +209,14 @@ export default {
   content: "";
   display: block;
   clear: both;
+}
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.5s ease;
+}
+.slide-fade-enter, .slide-fade-leave-to /* .slide-fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  // transform: translate3d(100%,0,0)
+  transform: scale(0);
 }
 </style>

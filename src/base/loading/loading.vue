@@ -1,7 +1,7 @@
 <template>
   <div class="loading">
     <div class="loading-el"></div>
-    <p class="loading-text">{{ title }}</p>
+    <p class="loading-text" v-show="title">{{ title }}</p>
   </div>
 </template>
 
@@ -19,11 +19,10 @@ export default {
 <style scoped lang="scss">
 @import "~common/sass/variable.scss";
 .loading {
+  position: relative;
+  width: 100%;
+  height: 100%;
   text-align: center;
-  img {
-    width: 30px;
-    height: 30px;
-  }
   .loading-el:before {
     content: "";
     position: absolute;
@@ -56,9 +55,10 @@ export default {
     animation: loaderd 1s ease-in-out infinite;
   }
   .loading-text {
+    position: relative;
+    top: 20px;
     font-size: $font-size-s;
     color: $color-theme-text-l;
-    margin-top: 40px;
   }
 }
 @-webkit-keyframes loaderg {

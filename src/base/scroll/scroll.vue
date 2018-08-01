@@ -24,6 +24,18 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
+    },
+    pullup: {
+      type: Boolean,
+      default: false
+    },
+    beforeScroll: {
+      type: Boolean,
+      default: false
+    },
+    refreshTime: {
+      type: Number,
+      default: 20
     }
   },
   mounted() {
@@ -51,6 +63,20 @@ export default {
           me.$emit('scroll', pos)
         })
       }
+      if (this.pullup) {
+        let me = this
+        this.scroll.on('scrollEnd', () => {
+          if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+            me.$emit('scrollToEnd')
+          }
+        })
+      }
+      if (this.beforeScroll) {
+        let me = this
+        this.scroll.on('beforeScrollStart', () => {
+          me.$emit('beforeScroll')
+        })
+      }
     },
     enable() {
       //  this.scroll存在才会执行this.scroll.enable()
@@ -72,8 +98,9 @@ export default {
   watch: {
     data() {
       setTimeout(() => {
+        console.log('刷新')
         this.refresh()
-      }, 20)
+      }, this.refreshTime)
     }
   }
 }

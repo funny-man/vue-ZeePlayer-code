@@ -1,5 +1,5 @@
 <template>
-  <div class="player" v-show="playlist.length>0">
+  <div class="player"  v-show="playlist.length>0">
     <transition name="normal"
                 @enter="enter"
                 @after-enter="afterEnter"
@@ -36,10 +36,10 @@
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
                 <p class="text"
-                   ref="lyricLine"
-                   :class="{'current': currentLineNum ===index}"
-                   v-for="(line,index) in currentLyric.lines"
-                   :key="index">{{ line.txt }}</p>
+                ref="lyricLine"
+                :class="{'current': currentLineNum ===index}"
+                v-for="(line,index) in currentLyric.lines"
+                :key="index">{{ line.txt }}</p>
               </div>
             </div>
           </scroll>
@@ -65,7 +65,7 @@
                   </div>
                 </div>
                 <div class="progressbar-loading" ref="progressbarLoading"></div>
-                <div class="play-time">
+                <div class="play-time" @click.stop>
                     <span class="cur">{{ format(curTime) }}</span>
                     <span class="total">{{ format(totalTime) }}</span>
                 </div>
@@ -107,11 +107,13 @@
         <div class="btn play-btn" @click.stop="togglePlaying">
           <i class="vue-music-icon" :class="playIcon"></i>
         </div>
-        <div class="btn list-btn" @click.stop="play">
+        <div class="btn list-btn" @click.stop="showPlaylist">
           <i class="vue-music-icon icon-song-list"></i>
         </div>
       </div>
     </transition>
+
+    <playlist ref="playlist"></playlist>
 
     <audio  :src="songUrl"
             v-if="currentSong"
@@ -123,22 +125,26 @@
             @waiting="waiting"
             @ended="end"
     ></audio>
+
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { playMode } from 'common/js/config'
-import { shuffle } from 'common/js/util'
+// import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 import { prefixStyle } from 'common/js/dom'
+import Playlist from 'components/playlist/playlist'
+import { playerMixin } from 'common/js/mixin'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
+  mixins: [playerMixin],
   data() {
     return {
       totalTime: 0,
@@ -148,7 +154,8 @@ export default {
       showLoading: true,
       currentLyric: null,
       currentShow: 'cd',
-      currentLineNum: 12
+      currentLineNum: 0,
+      playingLyric: ''
     }
   },
   computed: {
@@ -162,9 +169,6 @@ export default {
     playIcon() {
       return this.playing ? 'icon-pause-b' : 'icon-play-b'
     },
-    iconMode() {
-      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-    },
     cdRotate() {
       return this.playing ? 'play' : 'play pause'
     },
@@ -174,7 +178,6 @@ export default {
       'currentSong',
       'playing',
       'currentIndex',
-      'mode',
       'sequenceList'
     ])
   },
@@ -256,8 +259,10 @@ export default {
       // 通过百分比和歌曲总长度计算要定位的时长
       // 这里其实可以不设置this.curTime的值也会触发@timeupdate事件修改
       // 但是出发时间有时间差导致点击后等一下进度条才会变化没有跟随
-      this.curTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
-      this.$refs.audio.currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      let currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      this.curTime = currentTime
+      this.$refs.audio.currentTime = currentTime
+      this.currentLyric.seek(currentTime * 1000)
     },
     progressBtnTouchStart(e) {
       this.updateTimeLock = false
@@ -266,10 +271,16 @@ export default {
       this.progressTouch.pageX = e.touches[0].pageX
       this.progressTouch.progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
       this.progressTouch.progressbarWidth = this.$refs.progressbarWrapper.clientWidth
-      this.curTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      let moveWidth = this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft
+      if (moveWidth > this.progressTouch.progressbarWidth) {
+        moveWidth = this.progressTouch.progressbarWidth
+      }
+      this.curTime = moveWidth / this.progressTouch.progressbarWidth * this.totalTime
     },
     progressBtnTouchEnd() {
-      this.$refs.audio.currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      let currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      this.$refs.audio.currentTime = currentTime
+      this.currentLyric.seek(currentTime * 1000)
       this.updateTimeLock = true
     },
     togglePanel() {
@@ -277,6 +288,9 @@ export default {
     },
     togglePlaying() {
       this.setPlayingState(!this.playing)
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay()
+      }
     },
     play() {
       this.$refs.audio.play()
@@ -290,56 +304,60 @@ export default {
       console.log('next')
       console.log(this.mode)
       this.resetData()
-      let index = this.currentIndex + 1
-      if (index === this.playlist.length) {
-        index = 0
+      if (this.playlist.length === 1) {
+        this.loop()
+      } else {
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
       }
-      this.setCurrentIndex(index)
     },
     prev() {
       console.log('prev')
       this.resetData()
-      let index = this.currentIndex - 1
-      if (index === -1) {
-        index = this.playlist.length - 1
+      if (this.playlist.length === 1) {
+        this.loop()
+      } else {
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setCurrentIndex(index)
       }
-      this.setCurrentIndex(index)
     },
     loop() {
       this.$refs.audio.currentTime = 0
       this.$refs.audio.play()
-    },
-    changeMode() {
-      console.log('changeMode')
-      const mode = (this.mode + 1) % 3
-      this.setPlayMode(mode)
-      let list = null
-      // 如果是随机模式则把sequenceList（原始列表）重新洗牌设置到playList
-      if (this.mode === playMode.random) {
-        list = shuffle(this.sequenceList)
-      } else {
-        list = this.sequenceList
+      if (this.currentLyric) {
+        this.currentLyric.seek(0)
       }
-      this.resetCurrentIndex(list)
-      this.setPlayList(list)
+    },
+    showPlaylist() {
+      this.$refs.playlist.show()
     },
     ready(e) {
-      console.log('可以播放哦')
       this.showLoading = false
       this.totalTime = e.target.duration
+      this.savePlayHistory(this.currentSong)
     },
     error() { },
     updateTime(e) {
       if (!this.shouldUpdate) return
       this.shouldUpdate = false
       setTimeout(() => {
-        if (this.updateTimeLock) {
+        if (this.updateTimeLock && e.target.currentTime) {
           this.curTime = e.target.currentTime
+          // if (this.currentLyric) {
+          //   this.currentLyric.seek(this.curTime * 1000)
+          // }
         }
         this.shouldUpdate = true
       }, 1000)
     },
     progress() {
+      if (!this.$refs.audio) return
       console.log('loading...')
       let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.totalTime) : 0
       this.$refs.progressbarLoading.style.width = percent * 100 + '%'
@@ -358,12 +376,6 @@ export default {
       let minStr = min >= 10 ? min : '0' + min
       let secStr = sec >= 10 ? sec : '0' + sec
       return minStr + ':' + secStr
-    },
-    resetCurrentIndex(list) {
-      let index = list.findIndex((item) => {
-        return item.id === this.currentSong.id
-      })
-      this.setCurrentIndex(index)
     },
     resetData() {
       this.curTime = 0
@@ -463,25 +475,50 @@ export default {
       // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
       this.currentSong.getLyric().then((lyric) => {
         console.log(this.currentLyric)
-        this.currentLyric = new Lyric(lyric)
+        this.currentLyric = new Lyric(lyric, this.handleLyric)
+        if (this.playing) {
+          this.currentLyric.play()
+        }
         console.log('currentLyric')
         console.log(this.currentLyric)
+      }).catch(() => {
+        this.currentLyric = null
+        this.playingLyric = ''
+        this.currentLineNum = 0
       })
+    },
+    handleLyric({ lineNum, txt }) {
+      this.currentLineNum = lineNum
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 8]
+        this.$refs.lyricList.scrollToElement(lineEl, 1000)
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000)
+      }
+      this.playingLyric = txt
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlayList: 'SET_PLAYLIST'
-    })
+      setPlayingState: 'SET_PLAYING_STATE'
+    }),
+    ...mapActions([
+      'savePlayHistory'
+    ])
   },
   components: {
-    Scroll
+    Scroll,
+    Playlist
   },
   watch: {
     currentSong(newSong, oldSong) {
+      if (!newSong) return
       console.log('改变')
+      if (this.currentLyric) {
+        this.currentLyric.stop()
+        this.currentTime = 0
+        this.playingLyric = ''
+        this.currentLineNum = 0
+      }
       if (newSong === oldSong) return
       this.$nextTick(() => {
         console.log('watch')
@@ -506,6 +543,7 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
+    z-index: 1000;
     background-color: $color-bg;
     .header {
       position: fixed;
@@ -539,12 +577,43 @@ export default {
       width: 100%;
       text-align: center;
       white-space: nowrap;
+      font-size: 0;
+      &.middle::before {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: 60px;
+        background-image: linear-gradient(
+          to top,
+          rgba(24, 29, 40, 0),
+          $color-bg
+        );
+      }
+      &.middle::after {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: 60px;
+        background-image: linear-gradient(
+          to bottom,
+          rgba(24, 29, 40, 0),
+          $color-bg
+        );
+      }
       .middle-l {
         display: inline-block;
         width: 100%;
         height: 100%;
         vertical-align: top;
-        &.middle-l:before {
+        &.middle-l::before {
           content: "";
           display: inline-block;
           width: 0;
@@ -585,6 +654,7 @@ export default {
               color: $color-text-l;
               font-size: $font-size-l;
               margin-top: 20px;
+              padding: 1px;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -592,7 +662,8 @@ export default {
             .singer-name {
               color: $color-text-s;
               font-size: $font-size-s-x;
-              margin-top: 14px;
+              margin-top: 10px;
+              padding: 1px;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -608,6 +679,7 @@ export default {
         vertical-align: top;
         overflow: hidden;
         .lyric-wrapper {
+          padding: 100px 0;
           .text {
             font-size: $font-size-s-x;
             color: $color-text-s;
@@ -618,26 +690,6 @@ export default {
             }
           }
         }
-      }
-      .middle-r ::before {
-        content: "";
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100px;
-        background-color: pink;
-      }
-      .middle-r ::after {
-        content: "";
-        display: inline-block;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 100px;
-        background-color: pink;
       }
     }
     .bottom {
@@ -793,6 +845,7 @@ export default {
     right: 5px;
     bottom: 5px;
     left: 5px;
+    z-index: 1000;
     height: 64px;
     border-radius: 5px;
     // background-color: $color-bg;

@@ -17,3 +17,19 @@ export function shuffle(arr) {
 function getRandomInt(min, max) {
   return min + Math.floor(Math.random() * (max - min + 1))
 }
+
+// 节流函数
+export function debounce(fn, delay) {
+  // 这里的arguments是debounce的参数
+  let timer
+  return function () {
+    // 这里的arguments是fn的参数
+    var args = arguments
+    if (timer) {
+      clearTimeout(timer)
+    }
+    timer = setTimeout(() => {
+      fn.apply(this, args)
+    }, delay)
+  }
+}
