@@ -4,7 +4,7 @@
       <search-box  ref="searchBox" :inputPrompt="inputPrompt" @query="keyWordChange"></search-box>
     </div>
     <scroll class="shortcut-wrapper" :data="shortcut" v-show="!keyWord" ref="scroll">
-      <div class="shortcut">
+      <div class="shortcut" ref="shortcut">
         <div class="hot-key">
           <h3 class="title">热门搜索</h3>
           <div class="hot-key-list">
@@ -50,10 +50,10 @@ import Confirm from 'base/confirm/confirm'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/jsonp-data-config'
 import { mapActions } from 'vuex'
-import { searchMixin } from 'common/js/mixin'
+import { searchMixin, playlistMixin } from 'common/js/mixin'
 
 export default {
-  mixins: [searchMixin],
+  mixins: [searchMixin, playlistMixin],
   data() {
     return {
       inputPrompt: '搜索歌曲/歌手',
@@ -74,6 +74,11 @@ export default {
   // }, 5000)
   // },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      this.$refs.shortcut.style.paddingBottom = bottom
+      this.$refs.scroll.refresh()
+    },
     _getHotKey() {
       getHotKey().then(res => {
         if (res.code === ERR_OK) {

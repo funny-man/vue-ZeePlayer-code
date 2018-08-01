@@ -6,7 +6,7 @@
           @scrollToEnd="searchMore"
           @beforeScroll="listScroll"
           ref="suggest">
-    <ul class="suggest-list">
+    <ul class="suggest-list" ref="suggestList">
       <li class="suggest-item" v-for="(item,index) in result" :key="index" @click="selectItem(item)">
         <div class="icon">
           <i class="vue-music-icon" :class="getIconCls(item)"></i>
@@ -34,10 +34,12 @@ import Loading from 'base/loading/loading'
 import NoResult from 'base/no-result/no-result'
 import Singer from 'common/js/singer'
 import { mapMutations, mapActions } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 const perpage = 20
 
 export default {
+  mixins: [playlistMixin],
   props: {
     keyWord: {
       type: String,
@@ -62,10 +64,14 @@ export default {
     }
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '80px' : ''
+      this.$refs.suggestList.style.paddingBottom = bottom
+      this.$refs.suggest.refresh()
+    },
     selectItem(item) {
       if (item.type === 'singer') {
         const singer = new Singer({ name: item.singername, id: item.singermid })
-        console.log(singer)
         this.$router.push({
           path: `/search/${singer.id}`
         })
@@ -114,7 +120,6 @@ export default {
       this.hasMore = true
       this.$refs.suggest.scrollTo(0, 0)
       search(this.keyWord, this.page, this.showSinger, perpage).then(res => {
-        console.log(res.data)
         if (res.code === ERR_OK) {
           this.result = this._genResult(res.data)
           this.result.forEach((item) => {

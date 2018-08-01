@@ -44,7 +44,6 @@ export default {
     }, 20)
   },
   activated() {
-    console.log('组件激活了')
     this.refresh()
   },
   methods: {
@@ -98,7 +97,6 @@ export default {
   watch: {
     data() {
       setTimeout(() => {
-        console.log('刷新')
         this.refresh()
       }, this.refreshTime)
     }

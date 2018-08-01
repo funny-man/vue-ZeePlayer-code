@@ -1,7 +1,7 @@
 <template>
   <div id="essence" ref="essence">
     <scroll class="essence-ct" :data="hotList" ref="scroll">
-      <div>
+      <div ref="essenceWrapper">
         <div v-if="sliders.length" class="essence-slider">
           <slider>
             <div v-for="item in sliders" :key="item.id">
@@ -69,11 +69,10 @@ export default {
   methods: {
     handlePlaylist(playlist) {
       const bottom = playlist.length > 0 ? '74px' : ''
-      this.$refs.essence.style.bottom = bottom
+      this.$refs.essenceWrapper.style.paddingBottom = bottom
       this.$refs.scroll.refresh()
     },
     selectItem(item) {
-      console.log(item)
       this.$router.push({
         path: `/essence/${item.dissid}`
       })
@@ -83,7 +82,6 @@ export default {
       getSliders().then(res => {
         if (res.code === ERR_OK) {
           this.sliders = res.data.slider
-          console.log(this.sliders)
         }
       })
     },

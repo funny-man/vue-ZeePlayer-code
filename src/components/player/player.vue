@@ -85,8 +85,8 @@
             <div class="btn next" @click="next">
               <i class="vue-music-icon icon-next"></i>
             </div>
-            <div class="btn collection" @click="test">
-              <i class="vue-music-icon icon-like-n"></i>
+            <div class="btn collection" @click="toggleFavorite(currentSong)">
+              <i class="vue-music-icon" :class="getFavoriteIcon(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -174,11 +174,8 @@ export default {
     },
     ...mapGetters([
       'fullScreen',
-      'playlist',
-      'currentSong',
       'playing',
-      'currentIndex',
-      'sequenceList'
+      'currentIndex'
     ])
   },
   created() {
@@ -187,10 +184,6 @@ export default {
     this.middleTouch = {}
   },
   methods: {
-    test() {
-      console.log('测试')
-      console.log(this.$refs.cdCt.clientHeight)
-    },
     middleTouchStart(e) {
       this.middleTouch.initiated = true
       this.middleTouch.moved = false
@@ -287,6 +280,7 @@ export default {
       this.setFullScreen(!this.fullScreen)
     },
     togglePlaying() {
+      clearTimeout(this.playTimer)
       this.setPlayingState(!this.playing)
       if (this.currentLyric) {
         this.currentLyric.togglePlay()
@@ -301,9 +295,8 @@ export default {
     //   this.setPlayingState(false)
     // },
     next() {
-      console.log('next')
-      console.log(this.mode)
       this.resetData()
+      this.setPlayingState(true)
       if (this.playlist.length === 1) {
         this.loop()
       } else {
@@ -345,6 +338,7 @@ export default {
     error() { },
     updateTime(e) {
       if (!this.shouldUpdate) return
+      if (!this.$refs.audio) return
       this.shouldUpdate = false
       setTimeout(() => {
         if (this.updateTimeLock && e.target.currentTime) {
@@ -358,12 +352,10 @@ export default {
     },
     progress() {
       if (!this.$refs.audio) return
-      console.log('loading...')
       let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.totalTime) : 0
       this.$refs.progressbarLoading.style.width = percent * 100 + '%'
     },
     waiting() {
-      console.log('不能播放哦')
       this.showLoading = true
     },
     end() {
@@ -474,13 +466,10 @@ export default {
     _getLyric() {
       // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
       this.currentSong.getLyric().then((lyric) => {
-        console.log(this.currentLyric)
         this.currentLyric = new Lyric(lyric, this.handleLyric)
         if (this.playing) {
           this.currentLyric.play()
         }
-        console.log('currentLyric')
-        console.log(this.currentLyric)
       }).catch(() => {
         this.currentLyric = null
         this.playingLyric = ''
@@ -512,7 +501,6 @@ export default {
   watch: {
     currentSong(newSong, oldSong) {
       if (!newSong) return
-      console.log('改变')
       if (this.currentLyric) {
         this.currentLyric.stop()
         this.currentTime = 0
@@ -520,11 +508,18 @@ export default {
         this.currentLineNum = 0
       }
       if (newSong === oldSong) return
-      this.$nextTick(() => {
-        console.log('watch')
+      // this.$nextTick(() => {
+      //   this.play()
+      //   this._getLyric()
+      // })
+      clearTimeout(this.playTimer)
+      clearTimeout(this.getLyricTimer)
+      this.playTimer = setTimeout(() => {
         this.play()
+      }, 1000)
+      this.getLyricTimer = setTimeout(() => {
         this._getLyric()
-      })
+      }, 1000)
     },
     playing(newPlaying) {
       let audio = this.$refs.audio
@@ -816,6 +811,9 @@ export default {
           .icon-prev,
           .icon-next {
             color: $color-icon-1;
+          }
+          .icon-like-y {
+            color: $color-theme-1;
           }
         }
       }

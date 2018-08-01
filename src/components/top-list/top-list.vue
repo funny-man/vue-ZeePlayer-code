@@ -42,7 +42,6 @@ export default {
       }
       getTopMusicList(this.topList.id).then(res => {
         if (res.code === ERR_OK) {
-          console.log(res.songlist)
           this.songs = this._normalizeSong(res.songlist)
           // 前面的songs可以渲染出歌手歌单列表然后后台执行获取歌单每首歌的key
           this.songs.forEach((item) => {
