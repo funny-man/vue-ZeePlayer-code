@@ -20,7 +20,7 @@
               </span>
               <span class="text">{{item.name}}</span>
               <span @click.stop="toggleFavorite(item)" class="like">
-                <i class="vue-music-icon icon-like-y"></i>
+                <i class="vue-music-icon" :class="getFavoriteIcon(item)"></i>
               </span>
               <span @click.stop="deleteOne(item)" class="delete">
                 <i class="vue-music-icon icon-icon-test"></i>
@@ -45,7 +45,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapMutations, mapActions } from 'vuex'
 import { playMode } from 'common/js/config'
 import Scroll from 'base/scroll/scroll'
 import Confirm from 'base/confirm/confirm'
@@ -64,12 +64,7 @@ export default {
   computed: {
     modeText() {
       return this.mode === playMode.sequence ? '顺序播放' : this.mode === playMode.random ? '随机播放' : '单曲循环'
-    },
-    ...mapGetters([
-      'sequenceList',
-      'currentSong',
-      'playlist'
-    ])
+    }
   },
   methods: {
     show() {
@@ -105,9 +100,6 @@ export default {
       this.setCurrentIndex(index)
       // this.setPlayingState(true)
     },
-    toggleFavorite(item) {
-      console.log('收藏歌曲')
-    },
     deleteOne(item) {
       console.log('删除一个歌曲')
       this.deleteSong(item)
@@ -116,7 +108,6 @@ export default {
       }
     },
     addSong() {
-      console.log('addsong')
       this.$refs.addSong.show()
     },
     scrollToCurrent(current) {
@@ -266,9 +257,8 @@ export default {
           // margin-right: 10px;
           font-size: $font-size-m;
           color: $color-theme-text-s;
-
-          .icon-favorite {
-            color: $color-theme-text-s;
+          .icon-like-y {
+            color: $color-theme-1;
           }
         }
 

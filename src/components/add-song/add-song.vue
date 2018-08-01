@@ -50,7 +50,7 @@ import SongList from 'base/song-list/song-list'
 import SearchList from 'base/search-list/search-list'
 import TopTip from 'base/top-tip/top-tip'
 import { searchMixin } from 'common/js/mixin'
-import Song from 'common/js/song'
+import { normalizeSong } from 'common/js/song'
 
 import { mapGetters, mapActions } from 'vuex'
 
@@ -91,9 +91,7 @@ export default {
     },
     selectSong(song, index) {
       if (index !== 0) {
-        let songKey = song.key
-        song = new Song(song)
-        song.key = songKey
+        song = normalizeSong(song)
         this.insertSong({ song, isFullScreen: false })
         this.$refs.topTip.show()
       }

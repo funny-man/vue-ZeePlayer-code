@@ -1,7 +1,7 @@
 <template>
   <div id="ranking" ref="ranking">
     <scroll class="ranking-ct" :data="topList" ref="rankingCt">
-      <div class="top-list">
+      <div class="top-list" ref="topList">
           <ul>
             <li class="item" v-for="(item) in topList" :key="item.id" @click="selectItem(item)">
               <div class="ranking-pic">
@@ -49,11 +49,10 @@ export default {
   methods: {
     handlePlaylist(playlist) {
       const bottom = playlist.length > 0 ? '74px' : ''
-      this.$refs.ranking.style.bottom = bottom
+      this.$refs.topList.style.paddingBottom = bottom
       this.$refs.rankingCt.refresh()
     },
     selectItem(item) {
-      console.log(item)
       this.$router.push({
         path: `/ranking/${item.id}`
       })
@@ -63,7 +62,6 @@ export default {
       getTopList().then(res => {
         if (res.code === ERR_OK) {
           this.topList = res.data.topList
-          console.log(this.topList)
         }
       })
     },

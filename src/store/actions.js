@@ -1,7 +1,7 @@
 import * as types from './mutation-types'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
-import { saveSearch, deleteSearch, clearSearch, savePlay, deletePlay, clearPlay } from 'common/js/cache'
+import { saveSearch, deleteSearch, clearSearch, savePlay, saveFavorite, deleteFavorite } from 'common/js/cache'
 
 // 当多个状态一起操作也可以在这里面设置；
 // 例如同时要设置播放的列表播放器显示状态...
@@ -14,7 +14,6 @@ function findIndex(list, song) {
 
 //   歌单歌手页面点击播放歌曲初始化（整个歌单加入播放列表）
 export const selectPlay = function ({ commit, state }, { list, index }) {
-  console.log(1)
   commit(types.SET_SEQUENCE_LIST, list)
   if (state.mode === playMode.random) {
     let randomList = shuffle(list)
@@ -148,11 +147,12 @@ export const clearSearchHistory = function ({ commit }) {
 export const savePlayHistory = function ({ commit }, song) {
   commit(types.SET_PLAY_HISTORY, savePlay(song))
 }
-// 删除播放记录
-export const deletePlayHistory = function ({ commit }, song) {
-  commit(types.SET_PLAY_HISTORY, deletePlay(song))
+
+// 设置收藏歌曲记录
+export const saveFavoriteList = function ({ commit }, song) {
+  commit(types.SET_FAVORITE_LIST, saveFavorite(song))
 }
-// 清空播放记录
-export const clearPlayHistory = function ({ commit }) {
-  commit(types.SET_PLAY_HISTORY, clearPlay())
+// 删除收藏歌曲记录
+export const deleteFavoriteList = function ({ commit }, song) {
+  commit(types.SET_FAVORITE_LIST, deleteFavorite(song))
 }

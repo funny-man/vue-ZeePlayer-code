@@ -24,7 +24,6 @@ export default class Song {
     // 否则直接获取歌词并通过Promise异步传给player.vue
     return new Promise((resolve, reject) => {
       getLyric(this.mid).then((res) => {
-        console.log('请求.........歌词')
         if (res.retcode === ERR_OK) {
           this.lyric = Base64.decode(res.lyric)
           resolve(this.lyric)
@@ -59,4 +58,13 @@ export function filterSinger(singer) {
     ret.push(el.name)
   })
   return ret.join('/')
+}
+
+// 单个song的处理（应为设置缓存时是吧对象转换成字符串；读取时候是吧字符串转回为对象导致song对象中的方法没有了）
+
+export function normalizeSong(song) {
+  let songKey = song.key
+  song = new Song(song)
+  song.key = songKey
+  return song
 }

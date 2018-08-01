@@ -9,37 +9,41 @@
           <switches @switch="switchItem" :switches="switches" :currentIndex="currentIndex"></switches>
         </div>
       </div>
-      <div class="play-btn-ct">
+      <div class="play-btn-ct" v-show="showBtn" @click="random">
         <div class="play-btn" ref="playBtn">
           <i class="vue-music-icon icon-play-a"></i>
           <span>随机播放</span>
         </div>
       </div>
-      <!-- <div ref="playBtn" class="play-btn" @click="random">
-        <i class="icon-play"></i>
-        <span class="text">随机播放全部</span>
-      </div>
-      <div class="list-wrapper" ref="listWrapper">
-        <scroll ref="favoriteList" class="list-scroll" v-if="currentIndex===0" :data="favoriteList">
-          <div class="list-inner">
-            <song-list :songs="favoriteList" @select="selectSong"></song-list>
+      <div class="list-wrapper">
+        <scroll class="favorite" v-if="currentIndex===0" ref="favorite" :data="favoriteList">
+          <div class="song-list-ct" ref="favoriteList">
+            <song-list :songs="favoriteList" @seletc="selectSong"></song-list>
           </div>
         </scroll>
-        <scroll ref="playList" class="list-scroll" v-if="currentIndex===1" :data="playHistory">
-          <div class="list-inner">
-            <song-list :songs="playHistory" @select="selectSong"></song-list>
+        <scroll class="play-history" v-if="currentIndex===1" ref="playHistory" :data="playHistory">
+          <div class="song-list-ct" ref="playHistoryList">
+            <song-list :songs="playHistory" @seletc="selectSong"></song-list>
           </div>
         </scroll>
       </div>
       <div class="no-result-wrapper" v-show="noResult">
         <no-result :title="noResultDesc"></no-result>
-      </div> -->
+      </div>
     </div>
   </transition>
 </template>
 <script type="text/ecmascript-6">
 import Switches from 'base/switches/switches'
+import SongList from 'base/song-list/song-list'
+import Scroll from 'base/scroll/scroll'
+import { normalizeSong } from 'common/js/song'
+import NoResult from 'base/no-result/no-result'
+
+import { mapGetters, mapActions } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 export default {
+  mixins: [playlistMixin],
   data() {
     return {
       currentIndex: 0,
@@ -53,19 +57,89 @@ export default {
       ]
     }
   },
+  computed: {
+    showBtn() {
+      if (this.currentIndex === 0) {
+        return this.favoriteList.length
+      } else {
+        return this.playHistory.length
+      }
+    },
+    noResult() {
+      if (this.currentIndex === 0) {
+        return !this.favoriteList.length
+      } else {
+        return !this.playHistory.length
+      }
+    },
+    noResultDesc() {
+      if (this.currentIndex === 0) {
+        return '暂无收藏歌曲'
+      } else {
+        return '你还没有听过歌曲'
+      }
+    },
+    // 把vuex中缓存格式的数据转换成我们需要的songlist格式
+    normalizeFavoriteList() {
+      let list = []
+      let favoriteList = this.favoriteList.slice()
+      favoriteList.forEach(song => {
+        list.push(normalizeSong(song))
+      })
+      return list
+    },
+    normalizePlayHistory() {
+      let list = []
+      let playHistory = this.playHistory.slice()
+      playHistory.forEach(song => {
+        list.push(normalizeSong(song))
+      })
+      return list
+    },
+    ...mapGetters([
+      'favoriteList',
+      'playHistory'
+    ])
+  },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '74px' : ''
+      if (this.currentIndex === 0) {
+        this.$refs.favoriteList.style.paddingBottom = bottom
+        this.$refs.favorite.refresh()
+      } else {
+        this.$refs.playHistoryList.style.paddingBottom = bottom
+        this.$refs.playHistory.refresh()
+      }
+    },
     back() {
       this.$router.back()
     },
     switchItem(index) {
       this.currentIndex = index
-    }
+    },
+    selectSong(song) {
+      song = normalizeSong(song)
+      this.insertSong({ song, isFullScreen: true })
+      // this.$refs.topTip.show()
+    },
+    random() {
+      if (this.currentIndex === 0) {
+        this.randomPlay(this.normalizeFavoriteList)
+      } else {
+        this.randomPlay(this.normalizePlayHistory)
+      }
+    },
+    ...mapActions([
+      'insertSong',
+      'randomPlay'
+    ])
   },
   components: {
-    Switches
-    // Scroll,
-    // SongList,
-    // NoResult
+    Switches,
+    Scroll,
+    SongList,
+    NoResult
   }
 }
 </script>
@@ -113,7 +187,8 @@ export default {
   }
   .play-btn-ct {
     text-align: center;
-    margin-top: 15px;
+    padding: 10px 0;
+    background-color: #1f2531;
     .play-btn {
       display: inline-block;
       padding: 8px 16px;
@@ -138,6 +213,27 @@ export default {
         opacity: 0.7;
       }
     }
+  }
+  .list-wrapper {
+    position: fixed;
+    top: 100px;
+    bottom: 0;
+    width: 100%;
+    overflow: hidden;
+    .favorite {
+      width: 100%;
+      height: 100%;
+    }
+    .play-history {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  .no-result-wrapper {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 </style>
