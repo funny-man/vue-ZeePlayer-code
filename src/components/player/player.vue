@@ -287,6 +287,7 @@ export default {
       }
     },
     play() {
+      console.log('触发播放')
       this.$refs.audio.play()
       this.setPlayingState(true)
     },
