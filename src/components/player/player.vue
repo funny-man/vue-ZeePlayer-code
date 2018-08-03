@@ -11,7 +11,7 @@
           <div class="back" @click="togglePanel">
             <i class="vue-music-icon icon-narrow"></i>
           </div>
-          <h3 class="title">PLAYER</h3>
+          <h3 class="title" @click="abc">PLAYER</h3>
         </div>
         <div class="middle"
              ref="middle"
@@ -116,7 +116,6 @@
     <playlist ref="playlist"></playlist>
 
     <audio  :src="songUrl"
-            v-if="currentSong"
             ref="audio"
             @canplay="ready"
             @error="error"
@@ -155,7 +154,7 @@ export default {
       currentLyric: null,
       currentShow: 'cd',
       currentLineNum: 0,
-      playingLyric: ''
+      songReady: false
     }
   },
   computed: {
@@ -163,8 +162,7 @@ export default {
       return `width: ${this.curTime / this.totalTime * 100}%;`
     },
     songUrl() {
-      if (!this.currentSong) return
-      return `http://dl.stream.qqmusic.qq.com/${this.currentSong.key.filename}?vkey=${this.currentSong.key.vkey}&guid=7342124872&uin=0&fromtag=66`
+      return this.currentSong ? `http://dl.stream.qqmusic.qq.com/${this.currentSong.key.filename}?vkey=${this.currentSong.key.vkey}&guid=7342124872&uin=0&fromtag=66` : 'static/music.mp3'
     },
     playIcon() {
       return this.playing ? 'icon-pause-b' : 'icon-play-b'
@@ -183,7 +181,21 @@ export default {
     this.progressTouch = {}
     this.middleTouch = {}
   },
+  mounted() {
+    let _this = this
+    function audioAutoPlay() {
+      console.log('全局点击事件')
+      var audio = _this.$refs.audio
+      audio.play()
+      document.removeEventListener('touchstart', audioAutoPlay)
+    }
+    document.addEventListener('touchstart', audioAutoPlay)
+  },
   methods: {
+    abc() {
+      console.log('点击了播放')
+      this.play()
+    },
     middleTouchStart(e) {
       this.middleTouch.initiated = true
       this.middleTouch.moved = false
@@ -282,19 +294,19 @@ export default {
     togglePlaying() {
       clearTimeout(this.playTimer)
       this.setPlayingState(!this.playing)
-      if (this.currentLyric) {
-        this.currentLyric.togglePlay()
-      }
+      // if (this.currentLyric) {
+      //   this.currentLyric.togglePlay()
+      // }
     },
     play() {
-      console.log('触发播放')
+      console.log('play')
       this.$refs.audio.play()
       this.setPlayingState(true)
     },
-    // pause() {
-    //   this.$refs.audio.pause()
-    //   this.setPlayingState(false)
-    // },
+    pause() {
+      this.$refs.audio.pause()
+      // this.setPlayingState(false)
+    },
     next() {
       this.resetData()
       this.setPlayingState(true)
@@ -311,6 +323,7 @@ export default {
     prev() {
       console.log('prev')
       this.resetData()
+      this.setPlayingState(true)
       if (this.playlist.length === 1) {
         this.loop()
       } else {
@@ -318,6 +331,7 @@ export default {
         if (index === -1) {
           index = this.playlist.length - 1
         }
+        console.log('定位')
         this.setCurrentIndex(index)
       }
     },
@@ -332,21 +346,25 @@ export default {
       this.$refs.playlist.show()
     },
     ready(e) {
+      console.log('ready')
       this.showLoading = false
+      // if (this.playing) {
+      //   this.play()
+      // }
       this.totalTime = e.target.duration
       this.savePlayHistory(this.currentSong)
     },
     error() { },
     updateTime(e) {
-      if (!this.shouldUpdate) return
       if (!this.$refs.audio) return
+      if (!this.shouldUpdate) return
       this.shouldUpdate = false
       setTimeout(() => {
         if (this.updateTimeLock && e.target.currentTime) {
           this.curTime = e.target.currentTime
-          // if (this.currentLyric) {
-          //   this.currentLyric.seek(this.curTime * 1000)
-          // }
+          if (this.currentLyric) {
+            this.currentLyric.seek(this.curTime * 1000)
+          }
         }
         this.shouldUpdate = true
       }, 1000)
@@ -468,12 +486,13 @@ export default {
       // currentSong是由于之前new Song得到这是一个面向对象的方法，每一个new Song得到的对象都有getLyric()方法
       this.currentSong.getLyric().then((lyric) => {
         this.currentLyric = new Lyric(lyric, this.handleLyric)
-        if (this.playing) {
-          this.currentLyric.play()
-        }
+        // 这里没有调用this.currentLyric.play()使歌词自己滚动
+        // 而是通过updateTime中设置this.currentLyric.seek(this.curTime * 1000)实时定位
+        // if (this.playing) {
+        //   this.currentLyric.play()
+        // }
       }).catch(() => {
         this.currentLyric = null
-        this.playingLyric = ''
         this.currentLineNum = 0
       })
     },
@@ -485,7 +504,6 @@ export default {
       } else {
         this.$refs.lyricList.scrollTo(0, 0, 1000)
       }
-      this.playingLyric = txt
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
@@ -502,13 +520,12 @@ export default {
   watch: {
     currentSong(newSong, oldSong) {
       if (!newSong) return
+      if (newSong.id === oldSong.id) return
       if (this.currentLyric) {
         this.currentLyric.stop()
-        this.currentTime = 0
-        this.playingLyric = ''
         this.currentLineNum = 0
+        this.resetData()
       }
-      if (newSong === oldSong) return
       // this.$nextTick(() => {
       //   this.play()
       //   this._getLyric()
@@ -523,9 +540,17 @@ export default {
       }, 1000)
     },
     playing(newPlaying) {
-      let audio = this.$refs.audio
-      if (!audio) return
-      newPlaying ? audio.play() : audio.pause()
+      console.log('更改了playing')
+      // let audio = this.$refs.audio
+      if (!this.$refs.audio) return
+      newPlaying ? this.play() : this.pause()
+    },
+    fullScreen(newVal) {
+      if (newVal) {
+        setTimeout(() => {
+          this.$refs.lyricList.refresh()
+        }, 20)
+      }
     }
   }
 }

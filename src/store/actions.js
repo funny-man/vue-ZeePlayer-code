@@ -24,7 +24,7 @@ export const selectPlay = function ({ commit, state }, { list, index }) {
   }
   commit(types.SET_CURRENT_INDEX, index)
   commit(types.SET_FULL_SCREEN, true)
-  commit(types.SET_PLAYING_STATE, true)
+  // commit(types.SET_PLAYING_STATE, true)
 }
 //   随机播放初始化
 export const randomPlay = function ({ commit }, list) {
@@ -34,7 +34,7 @@ export const randomPlay = function ({ commit }, list) {
   commit(types.SET_PLAYLIST, randomList)
   commit(types.SET_CURRENT_INDEX, 0)
   commit(types.SET_FULL_SCREEN, true)
-  commit(types.SET_PLAYING_STATE, true)
+  // commit(types.SET_PLAYING_STATE, true)
 }
 //   添加歌曲--搜索列表播放歌曲初始化
 //   整个搜索到个歌曲点击播放逻辑是>>先插入到当前播放歌曲后面>>然后查找是否有同样歌曲>>然后删除同样歌曲
@@ -84,7 +84,7 @@ export const insertSong = function ({ commit, state }, { song, isFullScreen }) {
   if (isFullScreen) {
     commit(types.SET_FULL_SCREEN, true)
   }
-  commit(types.SET_PLAYING_STATE, true)
+  // commit(types.SET_PLAYING_STATE, true)
 }
 // 删除歌曲
 export const deleteSong = function ({ commit, state }, song) {
