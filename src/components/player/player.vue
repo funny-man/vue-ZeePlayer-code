@@ -11,7 +11,7 @@
           <div class="back" @click="togglePanel">
             <i class="vue-music-icon icon-narrow"></i>
           </div>
-          <h3 class="title" @click="abc">PLAYER</h3>
+          <h3 class="title" @click="setTransform">PLAYER</h3>
         </div>
         <div class="middle"
              ref="middle"
@@ -22,8 +22,8 @@
           <div class="middle-l" ref="middleL">
             <div class="cd-ct" ref="cdCt">
               <div class="cd-wrapper" ref="cdWrapper">
-                <div class="cd" :class="cdRotate" ref="cd">
-                  <img class="cd-image" v-lazy="currentSong.image">
+                <div class="cd" ref="cd">
+                  <img class="cd-image" :class="cdRotate" ref="cdImage" v-lazy="currentSong.image">
                 </div>
               </div>
               <div class="text">
@@ -96,8 +96,8 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="togglePanel">
         <div class="mini-cd-wrapper">
-          <div class="cd" :class="cdRotate">
-            <img class="cd-image" :src="currentSong.image">
+          <div class="cd" ref="miniCd">
+            <img class="cd-image" ref="miniImageCd" :class="cdRotate" :src="currentSong.image">
           </div>
         </div>
         <div class="text">
@@ -170,7 +170,7 @@ export default {
       return this.playing ? 'icon-pause-b' : 'icon-play-b'
     },
     cdRotate() {
-      return this.playing ? 'play' : 'play pause'
+      return this.playing ? 'play' : ''
     },
     ...mapGetters([
       'fullScreen',
@@ -194,10 +194,6 @@ export default {
     document.addEventListener('touchstart', audioAutoPlay)
   },
   methods: {
-    abc() {
-      console.log('点击了播放')
-      this.play()
-    },
     middleTouchStart(e) {
       this.middleTouch.initiated = true
       this.middleTouch.moved = false
@@ -530,6 +526,28 @@ export default {
         this.$refs.lyricList.scrollTo(0, 0, 1000)
       }
     },
+    getStyle(element, pseduoElement) {
+      return element.currentStyle ? element.currentStyle : window.getComputedStyle(element, pseduoElement)
+    },
+    setTransform() {
+      if (this.fullScreen) {
+        let imageTransform = this.getStyle(this.$refs.cdImage, null).transform
+        let cdTransform = this.getStyle(this.$refs.cd, null).transform
+        this.$refs.cd.style[transform] = cdTransform === 'none'
+          ? imageTransform
+          : imageTransform.concat(cdTransform)
+      } else {
+        let imageTransform = this.getStyle(this.$refs.miniImageCd, null).transform
+        let cdTransform = this.getStyle(this.$refs.miniCd, null).transform
+        this.$refs.miniCd.style[transform] = cdTransform === 'none'
+          ? imageTransform
+          : imageTransform.concat(cdTransform)
+      }
+
+      // String.concat(要添加的str)方法就是在原有的String添加一个的str组成一个新的str（通Array.concat一样）
+      // 本质上是因为 CSS 里 transform 可以接受多种变换的叠加
+      // 例如 this.dom.player_music_photo_ct.style.transform = 'matrix(0.904848, 0.425734, -0.425734, 0.904848, 0, 0)matrix(0.904848, 0.425734, -0.425734, 0.904848, 0, 0)'
+    },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE'
@@ -566,6 +584,9 @@ export default {
       // let audio = this.$refs.audio
       if (!this.$refs.audio) return
       newPlaying ? this.play() : this.pause()
+      if (newPlaying === false) {
+        this.setTransform()
+      }
     },
     fullScreen(newVal) {
       if (newVal) {
@@ -676,17 +697,17 @@ export default {
               border-radius: 50%;
               width: 100%;
               height: 100%;
-              &.play {
-                animation: rotate 20s linear infinite;
-              }
-              &.pause {
-                animation-play-state: paused;
-              }
               .cd-image {
                 display: block;
                 width: 100%;
                 border-radius: 50%;
                 box-shadow: 0px 4px 9px rgba(9, 15, 28, 1);
+                &.play {
+                  animation: rotate 20s linear infinite;
+                }
+                // &.pause {
+                //   animation-play-state: paused;
+                // }
               }
             }
           }
@@ -900,21 +921,23 @@ export default {
     .mini-cd-wrapper {
       display: inline-block;
       margin-left: 20px;
+      transform: rotate(0deg);
       .cd {
         display: inline-block;
         width: 50px;
         border-radius: 50%;
         background-color: pink;
-        &.play {
-          animation: rotate 20s linear infinite;
-        }
-        &.pause {
-          animation-play-state: paused;
-        }
         .cd-image {
           display: block;
           width: 100%;
           border-radius: 50%;
+          &.play {
+            animation: rotate 20s linear infinite;
+          }
+          // 移动端无效
+          // &.pause {
+          //   animation-play-state: paused;
+          // }
         }
       }
     }
@@ -963,11 +986,8 @@ export default {
   }
 }
 @keyframes rotate {
-  0% {
-    transform: rotate(0);
-  }
   100% {
-    transform: rotate(360deg);
+    transform: rotate(1turn);
   }
 }
 </style>
