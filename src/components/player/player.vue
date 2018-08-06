@@ -117,6 +117,7 @@
 
     <audio  :src="songUrl"
             ref="audio"
+            @play="readya"
             @canplay="ready"
             @error="error"
             @timeupdate="updateTime"
@@ -154,7 +155,8 @@ export default {
       currentLyric: null,
       currentShow: 'cd',
       currentLineNum: 0,
-      songReady: false
+      songReady: false,
+      lyricReady: false
     }
   },
   computed: {
@@ -258,6 +260,7 @@ export default {
     },
     progressClick(e) {
       console.log(e)
+      if (!this.songReady) return
       let pageX = e.pageX
       let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
       let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
@@ -267,7 +270,9 @@ export default {
       let currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
       this.curTime = currentTime
       this.$refs.audio.currentTime = currentTime
-      this.currentLyric.seek(currentTime * 1000)
+      if (this.lyricReady) {
+        this.currentLyric.seek(currentTime * 1000)
+      }
     },
     progressBtnTouchStart(e) {
       this.updateTimeLock = false
@@ -292,11 +297,10 @@ export default {
       this.setFullScreen(!this.fullScreen)
     },
     togglePlaying() {
-      clearTimeout(this.playTimer)
       this.setPlayingState(!this.playing)
-      // if (this.currentLyric) {
-      //   this.currentLyric.togglePlay()
-      // }
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay()
+      }
     },
     play() {
       console.log('play')
@@ -309,31 +313,42 @@ export default {
     },
     next() {
       this.resetData()
-      this.setPlayingState(true)
+      clearTimeout(this.timer)
       if (this.playlist.length === 1) {
         this.loop()
       } else {
+        this.songReady = false
+        this.lyricReady = false
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
         let index = this.currentIndex + 1
         if (index === this.playlist.length) {
           index = 0
         }
         this.setCurrentIndex(index)
       }
+      this.setPlayingState(true)
     },
     prev() {
       console.log('prev')
       this.resetData()
-      this.setPlayingState(true)
+      clearTimeout(this.timer)
       if (this.playlist.length === 1) {
         this.loop()
       } else {
+        this.songReady = false
+        this.lyricReady = false
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
         let index = this.currentIndex - 1
         if (index === -1) {
           index = this.playlist.length - 1
         }
-        console.log('定位')
         this.setCurrentIndex(index)
       }
+      this.setPlayingState(true)
     },
     loop() {
       this.$refs.audio.currentTime = 0
@@ -345,14 +360,22 @@ export default {
     showPlaylist() {
       this.$refs.playlist.show()
     },
-    ready(e) {
-      console.log('ready')
+    ready() {
+      console.log('歌曲ready')
       this.showLoading = false
-      // if (this.playing) {
-      //   this.play()
-      // }
+      setTimeout(() => {
+        this.songReady = true
+      }, 20)
+    },
+    readya(e) {
+      console.log('点击了播放')
+      if (this.playing) {
+        this.play()
+      }
       this.totalTime = e.target.duration
-      this.savePlayHistory(this.currentSong)
+      if (this.currentSong.id) {
+        this.savePlayHistory(this.currentSong)
+      }
     },
     error() { },
     updateTime(e) {
@@ -362,9 +385,9 @@ export default {
       setTimeout(() => {
         if (this.updateTimeLock && e.target.currentTime) {
           this.curTime = e.target.currentTime
-          if (this.currentLyric) {
-            this.currentLyric.seek(this.curTime * 1000)
-          }
+          // if (this.currentLyric) {
+          //   this.currentLyric.seek(this.curTime * 1000)
+          // }
         }
         this.shouldUpdate = true
       }, 1000)
@@ -488,9 +511,11 @@ export default {
         this.currentLyric = new Lyric(lyric, this.handleLyric)
         // 这里没有调用this.currentLyric.play()使歌词自己滚动
         // 而是通过updateTime中设置this.currentLyric.seek(this.curTime * 1000)实时定位
-        // if (this.playing) {
-        //   this.currentLyric.play()
-        // }
+        if (this.playing) {
+          this.lyricReady = true
+          this.currentLyric.play()
+          this.currentLyric.seek(this.curTime * 1000)
+        }
       }).catch(() => {
         this.currentLyric = null
         this.currentLineNum = 0
@@ -530,12 +555,9 @@ export default {
       //   this.play()
       //   this._getLyric()
       // })
-      clearTimeout(this.playTimer)
-      clearTimeout(this.getLyricTimer)
-      this.playTimer = setTimeout(() => {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => {
         this.play()
-      }, 1000)
-      this.getLyricTimer = setTimeout(() => {
         this._getLyric()
       }, 1000)
     },
