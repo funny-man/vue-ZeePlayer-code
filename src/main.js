@@ -7,6 +7,10 @@ import 'common/sass/index.scss'
 import fastclick from 'fastclick'
 import VueLazyLoad from 'vue-lazyload'
 
+// import VConsole from 'vconsole'
+/* eslint-disable no-unused-vars */
+// let vConsole = new VConsole()
+
 /* 阻止启动生产消息 */
 Vue.config.productionTip = false
 //  优化移动端点击300毫秒

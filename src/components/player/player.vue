@@ -11,7 +11,7 @@
           <div class="back" @click="togglePanel">
             <i class="vue-music-icon icon-narrow"></i>
           </div>
-          <h3 class="title" @click="setTransform">PLAYER</h3>
+          <h3 class="title" @click="test">PLAYER</h3>
         </div>
         <div class="middle"
              ref="middle"
@@ -55,7 +55,7 @@
                  @click="progressClick"
             >
               <div class="progressbar">
-                <div class="progressbar-cur"  :class="{smooth:updateTimeLock}" :style="progressBarCur">
+                <div class="progressbar-cur" :class="{smooth:updateTimeLock}" :style="progressBarCur">
                   <div class="progressbar-btn"
                        @touchstart.prevent.stop="progressBtnTouchStart"
                        @touchmove.prevent.stop="progressBtnTouchMove"
@@ -67,7 +67,7 @@
                 <div class="progressbar-loading" ref="progressbarLoading"></div>
                 <div class="play-time" @click.stop>
                     <span class="cur">{{ format(curTime) }}</span>
-                    <span class="total">{{ format(totalTime) }}</span>
+                    <span class="total">{{ format(currentSong.duration) }}</span>
                 </div>
               </div>
             </div>
@@ -117,7 +117,6 @@
 
     <audio  :src="songUrl"
             ref="audio"
-            @play="readya"
             @canplay="ready"
             @error="error"
             @timeupdate="updateTime"
@@ -147,7 +146,6 @@ export default {
   mixins: [playerMixin],
   data() {
     return {
-      totalTime: 0,
       curTime: 0,
       shouldUpdate: true,
       updateTimeLock: true,
@@ -161,7 +159,11 @@ export default {
   },
   computed: {
     progressBarCur() {
-      return `width: ${this.curTime / this.totalTime * 100}%;`
+      if (this.curTime > Math.floor(this.currentSong.duration) || this.curTime === 0 || Math.floor(this.currentSong.duration) === 0) {
+        return `width: 0;`
+      } else {
+        return `width: ${this.curTime / this.currentSong.duration * 100}%;`
+      }
     },
     songUrl() {
       return this.currentSong ? `http://dl.stream.qqmusic.qq.com/${this.currentSong.key.filename}?vkey=${this.currentSong.key.vkey}&guid=7342124872&uin=0&fromtag=66` : 'static/music.mp3'
@@ -189,11 +191,16 @@ export default {
       console.log('全局点击事件')
       var audio = _this.$refs.audio
       audio.play()
+      audio.pause()
+      this.curTime = 0
       document.removeEventListener('touchstart', audioAutoPlay)
     }
     document.addEventListener('touchstart', audioAutoPlay)
   },
   methods: {
+    test() {
+      console.log(this.currentSong.duration)
+    },
     middleTouchStart(e) {
       this.middleTouch.initiated = true
       this.middleTouch.moved = false
@@ -255,15 +262,14 @@ export default {
       this.middleTouch.initiated = false
     },
     progressClick(e) {
-      console.log(e)
       if (!this.songReady) return
       let pageX = e.pageX
       let progressbarMarginLeft = this.$refs.progressbarWrapper.offsetLeft
       let progressbarWidth = this.$refs.progressbarWrapper.clientWidth
       // 通过百分比和歌曲总长度计算要定位的时长
       // 这里其实可以不设置this.curTime的值也会触发@timeupdate事件修改
-      // 但是出发时间有时间差导致点击后等一下进度条才会变化没有跟随
-      let currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.totalTime
+      // 但是时间有时间差导致点击后等一下进度条才会变化没有跟随
+      let currentTime = (pageX - progressbarMarginLeft) / progressbarWidth * this.currentSong.duration
       this.curTime = currentTime
       this.$refs.audio.currentTime = currentTime
       if (this.lyricReady) {
@@ -281,10 +287,10 @@ export default {
       if (moveWidth > this.progressTouch.progressbarWidth) {
         moveWidth = this.progressTouch.progressbarWidth
       }
-      this.curTime = moveWidth / this.progressTouch.progressbarWidth * this.totalTime
+      this.curTime = moveWidth / this.progressTouch.progressbarWidth * this.currentSong.duration
     },
     progressBtnTouchEnd() {
-      let currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.totalTime
+      let currentTime = (this.progressTouch.pageX - this.progressTouch.progressbarMarginLeft) / this.progressTouch.progressbarWidth * this.currentSong.duration
       this.$refs.audio.currentTime = currentTime
       this.currentLyric.seek(currentTime * 1000)
       this.updateTimeLock = true
@@ -305,7 +311,7 @@ export default {
     },
     pause() {
       this.$refs.audio.pause()
-      // this.setPlayingState(false)
+      this.setPlayingState(false)
     },
     next() {
       this.resetData()
@@ -356,22 +362,13 @@ export default {
     showPlaylist() {
       this.$refs.playlist.show()
     },
-    ready() {
+    ready(e) {
       console.log('歌曲ready')
       this.showLoading = false
-      setTimeout(() => {
-        this.songReady = true
-      }, 20)
-    },
-    readya(e) {
-      console.log('点击了播放')
-      if (this.playing) {
-        this.play()
-      }
-      this.totalTime = e.target.duration
       if (this.currentSong.id) {
         this.savePlayHistory(this.currentSong)
       }
+      this.songReady = true
     },
     error() { },
     updateTime(e) {
@@ -381,16 +378,13 @@ export default {
       setTimeout(() => {
         if (this.updateTimeLock && e.target.currentTime) {
           this.curTime = e.target.currentTime
-          // if (this.currentLyric) {
-          //   this.currentLyric.seek(this.curTime * 1000)
-          // }
         }
         this.shouldUpdate = true
       }, 1000)
     },
     progress() {
       if (!this.$refs.audio) return
-      let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.totalTime) : 0
+      let percent = this.$refs.audio.buffered.length ? (this.$refs.audio.buffered.end(this.$refs.audio.buffered.length - 1) / this.currentSong.duration) : 0
       this.$refs.progressbarLoading.style.width = percent * 100 + '%'
     },
     waiting() {
@@ -579,8 +573,7 @@ export default {
         this._getLyric()
       }, 1000)
     },
-    playing(newPlaying) {
-      console.log('更改了playing')
+    playing(newPlaying, oldPlaying) {
       // let audio = this.$refs.audio
       if (!this.$refs.audio) return
       newPlaying ? this.play() : this.pause()
@@ -802,11 +795,7 @@ export default {
               height: 100%;
               width: 0;
               border-radius: 1000px;
-              background-image: linear-gradient(
-                left,
-                $color-theme-2,
-                $color-theme-1
-              );
+              background: linear-gradient(to right, $color-theme-2 , $color-theme-1);
               .progressbar-btn {
                 display: inline-block;
                 position: absolute;

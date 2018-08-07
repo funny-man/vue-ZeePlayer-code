@@ -46,8 +46,8 @@ module.exports = {
 
   build: {
     port: 9090,
-    // host: '192.168.43.180',
-    host: 'localhost', // can be overwritten by process.env.HOST
+    host: '192.168.43.180',
+    // host: 'localhost', // can be overwritten by process.env.HOST
     // Template for index.html
     index: path.resolve(__dirname, '../dist/index.html'),
     // Paths
