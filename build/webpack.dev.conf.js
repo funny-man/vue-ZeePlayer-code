@@ -10,6 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
 
+const HOST = process.env.HOST
+const PORT = process.env.PORT && Number(process.env.PORT)
+
 //  下面是后端代理请求设置绕过host及refrere begin的引用
 //  剩下的后端发送请求配置在下面的devServer里面写
 const express = require('express')
@@ -18,9 +21,6 @@ const app = express()
 let apiRoutes = express.Router()
 app.use('/api', apiRoutes)
 // 上面是后端代理请求设置绕过host及refrere begin的引用
-
-const HOST = process.env.HOST
-const PORT = process.env.PORT && Number(process.env.PORT)
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -33,88 +33,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   devServer: {
     //  下面是请求代理前端的请求在这里接收；然后向qq音乐发送请求把数据在传给前端
     before(app) {
-      app.get('/api/getHotList', function (req, res) {
-        //  设置路由
-        //  前端请求/getHotList转到这里
-        //  这里通过axios请求'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'这个地址
-        //  并且请求里设置参数referer:'https://c.y.qq.com/',host:'c.y.qq.com'
-        //  传入req是前端请求传入参数
-        //  res是响应给前端的数据
-        let url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
-        axios.get(url, {
-          // 获取歌单发送ajax请求所需要的请求头响应头
-          // 这两个参数就是骗过qq的关键
-          headers: {
-            referer: 'https://c.y.qq.com/',
-            host: 'c.y.qq.com'
-          },
-          params: req.query // 通过前端传入的req获取到请求参数
-        }).then((response) => { // 这个response是最终获取的数据，透传给res再通过res响应给rc/api/essence.js（前端）
-          res.json(response.data)
-        }).catch((e) => {
-          console.log(e)
-        })
-      })
-      app.get('/api/getTopList', function (req, res) {
-        let url = 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg'
-        axios.get(url, {
-          headers: {
-            referer: 'https://c.y.qq.com/',
-            host: 'c.y.qq.com'
-          },
-          params: req.query
-        }).then((response) => {
-          res.json(response.data)
-        }).catch((e) => {
-          console.log(e)
-        })
-      })
       app.get('/api/getSongList', function (req, res) {
         let url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
-        axios.get(url, {
-          headers: {
-            referer: 'https://c.y.qq.com/',
-            host: 'c.y.qq.com'
-          },
-          params: req.query
-        }).then((response) => {
-          let ret = response.data
-          if (typeof ret === 'string') {
-            let reg = /^\w+\((\{.*\})\)$/
-            let matches = ret.match(reg)
-            if (matches) {
-              ret = JSON.parse(matches[1])
-            }
-          }
-          res.json(ret)
-        }).catch((e) => {
-          console.log(e)
-        })
-      })
-      app.get('/api/lyric', function (req, res) {
-        let url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
-        axios.get(url, {
-          headers: {
-            referer: 'https://c.y.qq.com/',
-            host: 'c.y.qq.com'
-          },
-          params: req.query
-        }).then((response) => {
-          let ret = response.data
-          if (typeof ret === 'string') {
-            let reg = /^\w+\((\{.*\})\)$/
-            let matches = ret.match(reg)
-            if (matches) {
-              ret = JSON.parse(matches[1])
-            }
-          }
-          res.json(ret)
-        }).catch((e) => {
-          console.log(e)
-        })
-      })
-      app.get('/api/search', function (req, res) {
-        let url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
         axios.get(url, {
           headers: {
             referer: 'https://c.y.qq.com/',
@@ -128,7 +48,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         })
       })
     },
-    //  上面是请求代理前端的请求在这里接收；然后想qq音乐发送请求把数据在传给前端
+    //  上面是请求代理前端的请求在这里接收；然后想qq音乐发送请求把数据在传给前端\
+
     clientLogLevel: 'warning',
     historyApiFallback: {
       rewrites: [

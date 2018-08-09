@@ -6,11 +6,61 @@ const path = require('path')
 
 module.exports = {
   dev: {
-
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      '/api/getHotList': {
+        target: 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg',
+        bypass: function (req, res, proxyOptions) {
+          req.headers.referer = 'https://c.y.qq.com'
+          req.headers.host = 'c.y.qq.com'
+        },
+        pathRewrite: {
+          '^/api/getHotList': ''
+        }
+      },
+      '/api/getTopList': {
+        target: 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg',
+        bypass: function (req, res, proxyOptions) {
+          req.headers.referer = 'https://c.y.qq.com'
+          req.headers.host = 'c.y.qq.com'
+        },
+        pathRewrite: {
+          '^/api/getTopList': ''
+        }
+      },
+      // '/api/getSongList': {
+      //   target: 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
+      //   bypass: function (req, res, proxyOptions) {
+      //     req.headers.referer = 'https://y.qq.com'
+      //     req.headers.host = 'c.y.qq.com'
+      //   },
+      //   pathRewrite: {
+      //     '^/api/getSongList': ''
+      //   }
+      // },
+      '/api/lyric': {
+        target: 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg',
+        bypass: function (req, res, proxyOptions) {
+          req.headers.referer = 'https://y.qq.com/n/yqq/playsquare'
+          req.headers.host = 'c.y.qq.com'
+        },
+        pathRewrite: {
+          '^/api/lyric': ''
+        }
+      },
+      '/api/search': {
+        target: 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp',
+        bypass: function (req, res, proxyOptions) {
+          req.headers.referer = 'https://c.y.qq.com'
+          req.headers.host = 'c.y.qq.com'
+        },
+        pathRewrite: {
+          '^/api/search': ''
+        }
+      }
+    },
 
     // Various Dev Server settings
     host: '192.168.43.180',

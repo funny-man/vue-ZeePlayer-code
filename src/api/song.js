@@ -18,6 +18,14 @@ export function getLyric(mid) {
   return axios.get(url, {
     params: data
   }).then((res) => {
-    return Promise.resolve(res.data)
+    let ret = res.data
+    if (typeof ret === 'string') {
+      let reg = /^\w+\((\{.*\})\)$/
+      let matches = ret.match(reg)
+      if (matches) {
+        ret = JSON.parse(matches[1])
+      }
+    }
+    return Promise.resolve(ret)
   })
 }

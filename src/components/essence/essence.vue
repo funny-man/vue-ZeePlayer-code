@@ -20,7 +20,7 @@
               </div>
               <div class="text">
                 <div class="text-ct">
-                  <h3 class="name" v-html="item.dissname">{{ item.dissname }}</h3>
+                  <h3 class="name" v-html="item.dissname"></h3>
                   <p class="clicks"><span>播放量：</span><span v-html="item.listennum"></span></p>
                 </div>
               </div>
