@@ -4,7 +4,7 @@
 > 仓库地址：https://github.com/funny-man/vue-myMusic-code
 
 ## 效果预览
-![Image text](vue-myMusic-code/img-folder/PNG 图像-024ACCC59CF1-1.png)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/PNG%20%E5%9B%BE%E5%83%8F-024ACCC59CF1-1.png)
 
 ## 文件目录架构
 
