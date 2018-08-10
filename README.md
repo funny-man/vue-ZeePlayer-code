@@ -1,7 +1,12 @@
 # zee-music(vue2.0)
 
+![](https://img.shields.io/travis/USER/REPO.svg)![](https://img.shields.io/badge/vue-v2.4.1-green.svg)![](https://img.shields.io/badge/vue--router-v3.0.1-ff69b4.svg)![](https://img.shields.io/badge/vuex-v2.3.1-blue.svg)
+
+
+
 > 基于vue全家桶做的一款音乐webapp
-> 所以数据的获取都是通过qq英语表示感谢
+> 所以数据的获取都是通过qq音乐表示感谢
+> 关于设计稿由于我是设计专业的之前也是做设计所以基本是边做边修改所以没有完整的设计稿
 
 项目包括
 - essence>歌单列表、轮播、歌单详情
@@ -13,6 +18,7 @@
 - 确认弹出框 loading ... 等等
 
 希望能给你原生般的顺滑体验
+如果你觉得不错，对你有帮助，欢迎点个star，也可以帮忙分享给你更多的朋友 ，
 
 ## 技术栈
 
@@ -92,4 +98,3 @@ npm run build
 - 部分接口跨域问题
 
 - cd的转动停止（移动端不支持animation-play-state: paused;）--只能通过每次暂停设置cd的transform
-
