@@ -7,33 +7,34 @@
 ![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E9%A6%96%E9%A1%B5%402x.png)
 ![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E6%AD%8C%E5%8D%95%402x.png)
 ![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/player%402x.png)
-![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E5%85%B6%E4%BB%96%402x.png4)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E5%85%B6%E4%BB%96%402x.png)
 
 ## 文件目录架构
 
 **文件夹**
 
-  ---build  //webpack相关配置
-  ---config //webpack相关配置
-  ---dist   //打包后的项目资源文件（用于上线）
-  ---node_modules   //一些开发依赖包
-  ---src    //存放项目源码
-      |
-      |---api //一些数据请求的方法
-      |---base //通用组件（如scroll song-list）
-      |---common //一些通用静态的资源
-            |---fonts //字体icon文件
-            |---image //图片
-            |---js //通用js文件（通用方法）
-            |---stylus //基本样式文件
-      |---components//组件
-      |---router//路由相关文件 
-      |---store//存放vuex相关
-      app.vue
-      main.js //入口文件
-      |
-  ---static  //存放第三方静态资源默认里面有个.gitkeep（.gitkeep文件的作用是就算static是空的也会向git提交这个文件夹）
-
+``` bash
+---build  //webpack相关配置
+---config //webpack相关配置
+---dist   //打包后的项目资源文件（用于上线）
+---node_modules   //一些开发依赖包
+---src    //存放项目源码
+    |
+    |---api //一些数据请求的方法
+    |---base //通用组件（如scroll song-list）
+    |---common //一些通用静态的资源
+          |---fonts //字体icon文件
+          |---image //图片
+          |---js //通用js文件（通用方法）
+          |---stylus //基本样式文件
+    |---components//组件
+    |---router//路由相关文件 
+    |---store//存放vuex相关
+    app.vue
+    main.js //入口文件
+    |
+---static  //存放第三方静态资源默认里面有个.gitkeep（.gitkeep文件的作用是就算static是空的也会向git提交这个文件夹）
+```
 
 ## Build Setup
 
