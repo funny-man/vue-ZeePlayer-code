@@ -4,10 +4,10 @@
 > 仓库地址：https://github.com/funny-man/vue-myMusic-code
 
 ## 效果预览
-![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/PNG%20%E5%9B%BE%E5%83%8F-024ACCC59CF1-1.png)
-![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/PNG%20%E5%9B%BE%E5%83%8F-024ACCC59CF1-1.png)
-![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/PNG%20%E5%9B%BE%E5%83%8F-024ACCC59CF1-1.png)
-![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/PNG%20%E5%9B%BE%E5%83%8F-024ACCC59CF1-1.png)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E9%A6%96%E9%A1%B5%402x.png)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E6%AD%8C%E5%8D%95%402x.png)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/player%402x.png)
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E5%85%B6%E4%BB%96%402x.png4)
 
 ## 文件目录架构
 
