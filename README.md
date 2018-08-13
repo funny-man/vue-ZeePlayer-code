@@ -1,6 +1,6 @@
 # zee-music(vue2.0)
 
-![](http://img.shields.io/travis/{funny-man}/{vue-myMusic-code}.svg)  ![](https://img.shields.io/badge/vue-v2.4.1-green.svg)  ![](https://img.shields.io/badge/vue--router-v3.0.1-ff69b4.svg)  ![](https://img.shields.io/badge/vuex-v2.3.1-blue.svg)
+![](http://img.shields.io/travis/{funny-man}/{vue-myMusic-code}.svg)  ![](https://img.shields.io/badge/language-{vue2.0}-{#47b784}.svg)  ![](https://img.shields.io/badge/vue--router-v3.0.1-ff69b4.svg)  ![](https://img.shields.io/badge/vuex-v2.3.1-blue.svg)
 
 
 
