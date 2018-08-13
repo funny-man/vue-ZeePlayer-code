@@ -60,8 +60,12 @@
 
 ## DOME预览地址
 
->项目预览：https://funny-man.github.io/vue-myMusic-preview/#/essence
+**扫码预览**
 
+![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/1534127258.png)
+
+
+[点击预览](https://funny-man.github.io/vue-myMusic-preview/#/essence)
 
 ## 效果预览
 ![Image text](https://raw.githubusercontent.com/funny-man/vue-myMusic-code/master/img-folder/%E9%A6%96%E9%A1%B5%402x.png)
