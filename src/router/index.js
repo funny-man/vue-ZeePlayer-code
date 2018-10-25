@@ -15,46 +15,56 @@ Vue.use(Router)
 // import TopList from 'components/top-list/top-list'
 
 // 上面的写法换成下面这种让路由按需加载减少首次加载的速度
-const Essence = (resolve) => {
-  import('components/essence/essence').then((module) => {
-    resolve(module)
-  })
-}
-const Singer = (resolve) => {
-  import('components/singer/singer').then((module) => {
-    resolve(module)
-  })
-}
-const Ranking = (resolve) => {
-  import('components/ranking/ranking').then((module) => {
-    resolve(module)
-  })
-}
-const Search = (resolve) => {
-  import('components/search/search').then((module) => {
-    resolve(module)
-  })
-}
-const UserCenter = (resolve) => {
-  import('components/user-center/user-center').then((module) => {
-    resolve(module)
-  })
-}
-const SingerDetail = (resolve) => {
-  import('components/singer-detail/singer-detail').then((module) => {
-    resolve(module)
-  })
-}
-const Disc = (resolve) => {
-  import('components/disc/disc').then((module) => {
-    resolve(module)
-  })
-}
-const TopList = (resolve) => {
-  import('components/top-list/top-list').then((module) => {
-    resolve(module)
-  })
-}
+// 写法一
+const Essence = () => import('components/essence/essence')
+const Singer = () => import('components/singer/singer')
+const Ranking = () => import('components/ranking/ranking')
+const Search = () => import('components/search/search')
+const UserCenter = () => import('components/user-center/user-center')
+const SingerDetail = () => import('components/singer-detail/singer-detail')
+const Disc = () => import('components/disc/disc')
+const TopList = () => import('components/top-list/top-list')
+// 写法二
+// const Essence = (resolve) => {
+//   import('components/essence/essence').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const Singer = (resolve) => {
+//   import('components/singer/singer').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const Ranking = (resolve) => {
+//   import('components/ranking/ranking').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const Search = (resolve) => {
+//   import('components/search/search').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const UserCenter = (resolve) => {
+//   import('components/user-center/user-center').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const SingerDetail = (resolve) => {
+//   import('components/singer-detail/singer-detail').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const Disc = (resolve) => {
+//   import('components/disc/disc').then((module) => {
+//     resolve(module)
+//   })
+// }
+// const TopList = (resolve) => {
+//   import('components/top-list/top-list').then((module) => {
+//     resolve(module)
+//   })
+// }
 
 export default new Router({
   routes: [
